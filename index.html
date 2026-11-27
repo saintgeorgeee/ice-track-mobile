@@ -310,7 +310,7 @@ body.dock-collapsed .dock{display:none}
       <h3>Stile</h3>
       <div class="field-row"><span>Terra</span><div style="display:flex;gap:6px;align-items:center"><input id="gColor" type="color" value="#aa5500"><input id="gSlip" type="number" step="0.01" min="0.1" max="0.97" value="0.7" style="width:74px"></div></div>
       <div class="field-row"><span>Bianco</span><div style="display:flex;gap:6px;align-items:center"><input id="wgColor" type="color" value="#f8f8f8"><input id="wgSlip" type="number" step="0.01" min="0.1" max="0.97" value="0.8" style="width:74px"></div></div>
-      <div class="field-row"><span>Muri</span><div style="display:flex;gap:6px;align-items:center"><input id="wColor" type="color" value="#111111"><select id="wHeight" style="width:94px"><option value="3" selected>1 bl (3s)</option><option value="6">2 bl (6s)</option><option value="9">3 bl (9s)</option><option value="12">4 bl (12s)</option></select></div></div>
+      <div class="field-row"><span>Muri (/16 bl)</span><div style="display:flex;gap:6px;align-items:center"><input id="wColor" type="color" value="#111111"><input id="wHeight" type="number" min="1" max="64" step="1" value="16" style="width:74px"></div></div>
     </div>
 
     <div class="sheet-sec">
@@ -1322,7 +1322,7 @@ function syncStyleInputs() {
   document.getElementById('wgColor').value = styleCfg.whiteGround.color;
   document.getElementById('wgSlip').value = String(styleCfg.whiteGround.slipperiness);
   document.getElementById('wColor').value = styleCfg.wall.color;
-  document.getElementById('wHeight').value = String(styleCfg.wall.height);
+  document.getElementById('wHeight').value = String(Math.max(1, Math.min(64, Math.round((styleCfg.wall.height || 3) * 16 / CELL))));
   colors.ground = styleCfg.ground.color;
   colors.whiteGround = styleCfg.whiteGround.color;
   colors.wall = styleCfg.wall.color;
@@ -1336,7 +1336,7 @@ document.getElementById('gSlip').onchange = e => { styleCfg.ground.slipperiness 
 document.getElementById('wgColor').oninput = e => { styleCfg.whiteGround.color = e.target.value; syncStyleInputs(); render(); scheduleSave(); };
 document.getElementById('wgSlip').onchange = e => { styleCfg.whiteGround.slipperiness = Math.max(0.1, Math.min(0.97, Number(e.target.value) || 0.8)); scheduleSave(); };
 document.getElementById('wColor').oninput = e => { styleCfg.wall.color = e.target.value; syncStyleInputs(); render(); scheduleSave(); };
-document.getElementById('wHeight').onchange = e => { styleCfg.wall.height = Number(e.target.value) || 3; scheduleSave(); };
+document.getElementById('wHeight').onchange = e => { const s16 = Math.max(1, Math.min(64, Math.round(Number(e.target.value) || 16))); e.target.value = String(s16); styleCfg.wall.height = Number((s16 * CELL / 16).toFixed(4)); scheduleSave(); };
 
 // Widen Ice (+N total blocks while pushing ground/whiteGround/walls outward!)
 function exactIceEDT(iceCells, ox, oz, W, H) {
