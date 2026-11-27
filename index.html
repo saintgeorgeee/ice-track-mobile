@@ -300,6 +300,7 @@ body.dock-collapsed .dock{display:none}
       <div class="sheet-grid" style="margin-top:8px">
         <button id="outlineWallsBtn" class="sheet-btn" type="button">Muri attorno a Ice</button>
         <button id="swapGroundBtn" class="sheet-btn" type="button">Terra ↔ Bianco</button>
+        <button id="themeBtn" class="sheet-btn" type="button">🌙 Sfondo scuro</button>
         <button id="fullscreenBtn" class="sheet-btn" type="button">⛶ Fullscreen</button>
         <button id="clearBtn" class="sheet-btn danger" type="button">🗑 Nuova pista</button>
       </div>
@@ -841,16 +842,29 @@ function drawHandle(pt, fill, label) {
   ctx.restore();
 }
 
+let lightMode = (() => { try { return localStorage.getItem('ice-track-mobile-theme') !== 'dark'; } catch { return true; } })();
+function updateThemeBtn() {
+  const b = document.getElementById('themeBtn');
+  if (b) b.textContent = lightMode ? '🌙 Sfondo scuro' : '☀️ Sfondo grigio';
+}
+document.getElementById('themeBtn').onclick = () => {
+  lightMode = !lightMode;
+  try { localStorage.setItem('ice-track-mobile-theme', lightMode ? 'light' : 'dark'); } catch {}
+  updateThemeBtn();
+  render();
+};
+updateThemeBtn();
+
 function render() {
   const r = canvas.getBoundingClientRect();
   const s = 24 * zoom;
-  ctx.fillStyle = '#111925';
+  ctx.fillStyle = lightMode ? '#9daab8' : '#111925';
   ctx.fillRect(0, 0, r.width, r.height);
 
   // Subtle background grid on empty space
   if (zoom >= 0.14) {
     const gridAlpha = Math.min(0.32, 0.34 * Math.pow(zoom, 1.35));
-    ctx.strokeStyle = '#283449';
+    ctx.strokeStyle = lightMode ? '#7f8fa1' : '#283449';
     ctx.globalAlpha = gridAlpha;
     ctx.lineWidth = 1;
     const xStart = Math.floor(-offset.x / s) - 1, xEnd = Math.ceil((r.width - offset.x) / s) + 1;
