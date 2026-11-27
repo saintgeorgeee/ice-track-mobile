@@ -296,7 +296,8 @@ body.dock-collapsed .dock{display:none}
 
     <div class="sheet-sec">
       <h3>Azioni</h3>
-      <div class="sheet-grid">
+      <div class="field-row"><span>Allarga Ice (+blocchi)</span><div style="display:flex;gap:6px;align-items:center"><input id="widenAmount" type="number" min="1" max="24" step="1" value="3" style="width:66px"><button id="widenIceBtn" class="sheet-btn primary" type="button" style="height:36px;width:auto;padding:0 14px">Allarga</button></div></div>
+      <div class="sheet-grid" style="margin-top:8px">
         <button id="outlineWallsBtn" class="sheet-btn" type="button">Muri attorno a Ice</button>
         <button id="swapGroundBtn" class="sheet-btn" type="button">Terra ↔ Bianco</button>
         <button id="fullscreenBtn" class="sheet-btn" type="button">⛶ Fullscreen</button>
@@ -1322,6 +1323,91 @@ document.getElementById('wgColor').oninput = e => { styleCfg.whiteGround.color =
 document.getElementById('wgSlip').onchange = e => { styleCfg.whiteGround.slipperiness = Math.max(0.1, Math.min(0.97, Number(e.target.value) || 0.8)); scheduleSave(); };
 document.getElementById('wColor').oninput = e => { styleCfg.wall.color = e.target.value; syncStyleInputs(); render(); scheduleSave(); };
 document.getElementById('wHeight').onchange = e => { styleCfg.wall.height = Number(e.target.value) || 3; scheduleSave(); };
+
+// Widen Ice (+N total blocks while pushing ground/whiteGround/walls outward!)
+function exactIceEDT(iceCells, ox, oz, W, H) {
+  const INF = 1e12, g = new Float64Array(W * H).fill(INF), nearZ = new Int32Array(W * H).fill(-1), iceGrid = new Uint8Array(W * H);
+  for (const c of iceCells) { const i = (c.z - oz) * W + (c.x - ox); iceGrid[i] = 1; g[i] = 0; nearZ[i] = c.z; }
+  for (let x = 0; x < W; x++) {
+    let lastZ = -1;
+    for (let z = 0; z < H; z++) { const i = z * W + x; if (iceGrid[i]) lastZ = z; else if (lastZ !== -1) { const d = z - lastZ; g[i] = d * d; nearZ[i] = lastZ + oz; } }
+    lastZ = -1;
+    for (let z = H - 1; z >= 0; z--) { const i = z * W + x; if (iceGrid[i]) lastZ = z; else if (lastZ !== -1) { const d = lastZ - z, d2 = d * d; if (d2 < g[i]) { g[i] = d2; nearZ[i] = lastZ + oz; } } }
+  }
+  const nearXOut = new Int32Array(W * H), nearZOut = new Int32Array(W * H), v = new Int32Array(W), zBound = new Float64Array(W + 1);
+  for (let rz = 0; rz < H; rz++) {
+    const rowOff = rz * W; let firstValid = -1;
+    for (let q = 0; q < W; q++) if (g[rowOff + q] < INF) { firstValid = q; break; }
+    if (firstValid === -1) continue;
+    let k = 0; v[0] = firstValid; zBound[0] = -INF; zBound[1] = INF;
+    for (let q = firstValid + 1; q < W; q++) {
+      if (g[rowOff + q] >= INF) continue;
+      while (true) {
+        const vk = v[k], s = ((g[rowOff + q] + q * q) - (g[rowOff + vk] + vk * vk)) / (2 * (q - vk));
+        if (s <= zBound[k]) { k--; if (k < 0) { k = 0; v[0] = q; zBound[0] = -INF; zBound[1] = INF; break; } }
+        else { k++; v[k] = q; zBound[k] = s; zBound[k + 1] = INF; break; }
+      }
+    }
+    let kk = 0;
+    for (let rx = 0; rx < W; rx++) { while (zBound[kk + 1] < rx) kk++; const q = v[kk]; nearXOut[rowOff + rx] = q + ox; nearZOut[rowOff + rx] = nearZ[rowOff + q]; }
+  }
+  return { nearX: nearXOut, nearZ: nearZOut };
+}
+function widenIceSymmetric(cellsMap, R) {
+  if (R <= 0) return cellsMap;
+  const iceCells = []; let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (const c of cellsMap.values()) { if (c.x < minX) minX = c.x; if (c.x > maxX) maxX = c.x; if (c.z < minZ) minZ = c.z; if (c.z > maxZ) maxZ = c.z; if (c.type === 'ice' || c.type === 'blueIce') iceCells.push(c); }
+  if (!iceCells.length) return cellsMap;
+  const pad = R + 2, ox = minX - pad, oz = minZ - pad, W = (maxX - minX + 1) + pad * 2, H = (maxZ - minZ + 1) + pad * 2;
+  const { nearX, nearZ } = exactIceEDT(iceCells, ox, oz, W, H), out = new Map();
+  for (let rz = 0; rz < H; rz++) {
+    const z = rz + oz;
+    for (let rx = 0; rx < W; rx++) {
+      const x = rx + ox, i = rz * W + rx, ix = nearX[i], iz = nearZ[i], vx = x - ix, vz = z - iz, dist = Math.hypot(vx, vz);
+      const origHere = cellsMap.get(key(x, z));
+      if (origHere && (origHere.type === 'ice' || origHere.type === 'blueIce')) out.set(key(x, z), { ...origHere });
+      else if (dist <= R + 1e-6) { const srcIce = cellsMap.get(key(ix, iz)); out.set(key(x, z), { x, z, type: srcIce ? srcIce.type : 'ice' }); }
+      else if (dist > 1e-6) {
+        const nx = vx / dist, nz = vz / dist, sx = Math.round(x - R * nx), sz = Math.round(z - R * nz);
+        let src = cellsMap.get(key(sx, sz));
+        if (src && (src.type === 'ice' || src.type === 'blueIce')) { const alt = cellsMap.get(key(ix + Math.sign(vx), iz + Math.sign(vz))); src = (alt && alt.type !== 'ice' && alt.type !== 'blueIce') ? alt : null; }
+        if (src && src.type !== 'ice' && src.type !== 'blueIce') out.set(key(x, z), { ...src, x, z });
+      }
+    }
+  }
+  return out;
+}
+function widenIceByOne(cellsMap) {
+  const iceCells = []; let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (const c of cellsMap.values()) { if (c.x < minX) minX = c.x; if (c.x > maxX) maxX = c.x; if (c.z < minZ) minZ = c.z; if (c.z > maxZ) maxZ = c.z; if (c.type === 'ice' || c.type === 'blueIce') iceCells.push(c); }
+  if (!iceCells.length) return cellsMap;
+  const pad = 3, ox = minX - pad, oz = minZ - pad, W = (maxX - minX + 1) + pad * 2, H = (maxZ - minZ + 1) + pad * 2;
+  const { nearX, nearZ } = exactIceEDT(iceCells, ox, oz, W, H), out = new Map();
+  for (let rz = 0; rz < H; rz++) {
+    const z = rz + oz;
+    for (let rx = 0; rx < W; rx++) {
+      const x = rx + ox, i = rz * W + rx, ix = nearX[i], iz = nearZ[i], vx = x - ix, vz = z - iz;
+      const origHere = cellsMap.get(key(x, z));
+      if (origHere && (origHere.type === 'ice' || origHere.type === 'blueIce')) { out.set(key(x, z), { ...origHere }); continue; }
+      const shiftX = vx > 0 ? 1 : 0, shiftZ = vz > 0 ? 1 : 0;
+      const pulled = cellsMap.get(key(x - shiftX, z - shiftZ));
+      if (pulled && (pulled.type === 'ice' || pulled.type === 'blueIce')) out.set(key(x, z), { x, z, type: pulled.type });
+      else if (pulled) out.set(key(x, z), { ...pulled, x, z });
+    }
+  }
+  return out;
+}
+document.getElementById('widenIceBtn').onclick = () => {
+  const d = Math.max(1, Math.min(24, Math.round(Number(document.getElementById('widenAmount').value) || 3)));
+  if (![...cells.values()].some(c => c.type === 'ice' || c.type === 'blueIce')) { showToast('Disegna prima del ghiaccio'); return; }
+  let res = cells;
+  const sym = Math.floor(d / 2);
+  if (sym > 0) res = widenIceSymmetric(res, sym);
+  if (d % 2 === 1) res = widenIceByOne(res);
+  clearSessions(); begin(); cells = res; changed = true; end(); render(); updateStats();
+  sheetBackdrop.classList.remove('open');
+  showToast(`Ice +${d} blocchi (${cells.size} celle)`);
+};
 
 // Quick track actions
 document.getElementById('outlineWallsBtn').onclick = () => {
