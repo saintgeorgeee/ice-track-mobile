@@ -51,125 +51,120 @@ button:disabled{opacity:.38;pointer-events:none}
 
 /* Top Floating Bar */
 .top-bar{
-  position:fixed;top:calc(10px + var(--safe-top));
-  left:calc(10px + var(--safe-left));right:calc(10px + var(--safe-right));
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  position:fixed;top:calc(6px + var(--safe-top));
+  left:calc(6px + var(--safe-left));right:calc(6px + var(--safe-right));
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
   pointer-events:none;z-index:20;
 }
 .top-group{
-  display:flex;align-items:center;gap:6px;pointer-events:auto;
-  background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border:1px solid var(--border);border-radius:16px;padding:4px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+  display:flex;align-items:center;gap:3px;pointer-events:auto;
+  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border);border-radius:12px;padding:3px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
 }
 .icon-btn{
-  width:40px;height:40px;padding:0;border:none;background:transparent;border-radius:12px;
-  font-size:18px;font-weight:600;
+  width:34px;height:34px;padding:0;border:none;background:transparent;border-radius:9px;
+  font-size:16px;font-weight:600;
 }
 .icon-btn:active{background:rgba(255,255,255,0.12)}
 .icon-btn.primary-icon{background:rgba(64,157,236,0.22);color:#8fd0ff}
 .toast{
-  position:fixed;top:calc(60px + var(--safe-top));left:50%;transform:translateX(-50%);
-  max-width:min(92vw,420px);padding:7px 13px;border-radius:999px;
-  background:rgba(11,18,29,0.92);border:1px solid var(--border);
-  color:var(--text);font-size:12px;font-weight:500;text-align:center;
-  pointer-events:none;z-index:25;box-shadow:0 6px 20px rgba(0,0,0,0.4);
-  opacity:0;transition:opacity .2s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  position:fixed;top:calc(48px + var(--safe-top));left:50%;transform:translateX(-50%);
+  max-width:min(86vw,320px);padding:5px 11px;border-radius:999px;
+  background:rgba(11,18,29,0.9);border:1px solid var(--border);
+  color:var(--text);font-size:11px;font-weight:500;text-align:center;
+  pointer-events:none;z-index:25;opacity:0;transition:opacity .18s ease;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .toast.show{opacity:1}
 
 /* Floating Confirm Pill for Smooth / Contorno */
 .action-pill{
   position:fixed;left:50%;transform:translateX(-50%);
-  bottom:calc(132px + var(--safe-bottom));
-  display:none;align-items:center;gap:8px;padding:6px;
-  background:var(--glass-strong);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:1px solid rgba(148,175,204,0.34);border-radius:18px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:28;
+  bottom:calc(82px + var(--safe-bottom));
+  display:none;align-items:center;gap:5px;padding:4px;
+  background:var(--glass-strong);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(148,175,204,0.34);border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.45);z-index:28;
 }
 .action-pill.visible{display:flex}
-body.dock-collapsed .action-pill{bottom:calc(62px + var(--safe-bottom))}
-.action-pill button{height:40px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:600}
+body.dock-collapsed .action-pill{bottom:calc(14px + var(--safe-bottom))}
+.action-pill button{height:32px;padding:0 11px;border-radius:9px;font-size:12px;font-weight:600}
 .action-pill .btn-ok{background:#16a34a;border-color:#22c55e;color:#fff}
 .action-pill .btn-cancel{background:rgba(239,68,68,0.18);border-color:rgba(239,68,68,0.45);color:#fca5a5}
 .action-pill .btn-alt{background:rgba(64,157,236,0.2);border-color:rgba(64,157,236,0.45);color:#bae6fd}
 
 /* Brush Size Popover */
 .size-pop{
-  position:fixed;right:calc(12px + var(--safe-right));
-  bottom:calc(134px + var(--safe-bottom));
-  width:min(310px,calc(100vw - 24px));
-  background:var(--glass-strong);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border:1px solid rgba(148,175,204,0.34);border-radius:18px;padding:12px;
-  box-shadow:0 14px 36px rgba(0,0,0,0.55);z-index:30;display:none;
+  position:fixed;right:calc(8px + var(--safe-right));
+  bottom:calc(84px + var(--safe-bottom));
+  width:min(280px,calc(100vw - 16px));
+  background:var(--glass-strong);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(148,175,204,0.34);border-radius:14px;padding:10px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.5);z-index:30;display:none;
 }
 .size-pop.open{display:block}
-.size-pop-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:10px}
-.size-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
-.size-presets button{height:36px;font-size:13px;font-weight:600;border-radius:10px}
+.size-pop-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;margin-bottom:8px}
+.size-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
+.size-presets button{height:32px;font-size:12px;font-weight:600;border-radius:8px}
 .size-presets button.active{background:var(--accent);border-color:#7cc4ff;color:#08121f}
-.size-pop input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+.size-pop input[type=range]{width:100%;accent-color:var(--accent);height:24px}
 
-/* Bottom Dock */
+/* Bottom Dock — Ultra Compact */
 .dock-wrap{
-  position:fixed;left:calc(8px + var(--safe-left));right:calc(8px + var(--safe-right));
-  bottom:calc(8px + var(--safe-bottom));z-index:22;
-  display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;
-}
-.dock-toggle{
-  pointer-events:auto;height:24px;padding:0 14px;border-radius:999px;
-  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border:1px solid var(--border);font-size:11px;color:var(--muted);
+  position:fixed;left:calc(6px + var(--safe-left));right:calc(6px + var(--safe-right));
+  bottom:calc(6px + var(--safe-bottom));z-index:22;
+  display:flex;justify-content:center;pointer-events:none;
 }
 .dock{
-  pointer-events:auto;width:100%;max-width:680px;
-  background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border:1px solid var(--border);border-radius:20px;padding:7px 8px;
-  display:flex;flex-direction:column;gap:7px;
-  box-shadow:0 12px 34px rgba(0,0,0,0.45);
+  pointer-events:auto;width:100%;max-width:620px;
+  background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);border-radius:14px;padding:5px 6px;
+  display:flex;flex-direction:column;gap:5px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
 }
 body.dock-collapsed .dock{display:none}
 .row-scroll{
-  display:flex;align-items:center;gap:6px;overflow-x:auto;
-  scrollbar-width:none;-ms-overflow-style:none;padding:1px;
+  display:flex;align-items:center;gap:4px;overflow-x:auto;
+  scrollbar-width:none;-ms-overflow-style:none;
 }
 .row-scroll::-webkit-scrollbar{display:none}
-.dock-bottom-row{display:flex;align-items:center;gap:6px}
+.dock-bottom-row{display:flex;align-items:center;gap:5px}
 .dock-bottom-row .row-scroll{flex:1;min-width:0}
 
 /* Block Chips */
 .chip{
-  flex:0 0 auto;height:36px;padding:0 11px;border-radius:12px;
-  background:rgba(28,40,58,0.85);border:1.5px solid transparent;
-  font-size:12px;font-weight:600;white-space:nowrap;
+  flex:0 0 auto;height:28px;padding:0 8px;border-radius:8px;
+  background:rgba(28,40,58,0.82);border:1.5px solid transparent;
+  font-size:11px;font-weight:600;white-space:nowrap;
 }
-.chip.selected{border-color:#7cc4ff;background:rgba(64,157,236,0.22);box-shadow:0 0 0 1px rgba(124,196,255,0.35)}
+.chip.selected{border-color:#7cc4ff;background:rgba(64,157,236,0.24)}
 .swatch{
-  width:15px;height:15px;border-radius:5px;flex:0 0 auto;
+  width:12px;height:12px;border-radius:4px;flex:0 0 auto;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,0.28);
 }
 .custom-color-input{
-  width:24px;height:24px;padding:0;border:none;border-radius:6px;
+  width:22px;height:22px;padding:0;border:none;border-radius:5px;
   background:transparent;cursor:pointer;
 }
 
 /* Tool Buttons */
 .tool-btn{
-  flex:0 0 auto;height:40px;padding:0 11px;border-radius:12px;
+  flex:0 0 auto;height:32px;min-width:34px;padding:0 8px;border-radius:9px;
   background:rgba(28,40,58,0.75);border:1.5px solid transparent;
   font-size:12px;font-weight:600;white-space:nowrap;
 }
 .tool-btn.selected{background:var(--accent);color:#071322;border-color:#8fd0ff}
 .size-pill{
-  flex:0 0 auto;display:flex;align-items:center;gap:2px;
-  background:rgba(12,20,32,0.85);border:1px solid var(--border);
-  border-radius:12px;padding:2px;height:40px;
+  flex:0 0 auto;display:flex;align-items:center;gap:1px;
+  background:rgba(12,20,32,0.88);border:1px solid var(--border);
+  border-radius:9px;padding:2px;height:32px;
 }
 .size-pill button{
-  height:34px;min-width:30px;padding:0 6px;border:none;background:transparent;
-  border-radius:9px;font-size:15px;font-weight:700;
+  height:26px;min-width:24px;padding:0 4px;border:none;background:transparent;
+  border-radius:6px;font-size:14px;font-weight:700;
 }
-.size-pill .size-val{min-width:36px;font-size:13px;background:rgba(64,157,236,0.18);color:#9ad4ff}
+.size-pill .size-val{min-width:28px;font-size:12px;background:rgba(64,157,236,0.2);color:#9ad4ff}
 
 /* Bottom Sheet Menu */
 .sheet-backdrop{
@@ -212,13 +207,14 @@ body.dock-collapsed .dock{display:none}
 
 <div class="top-bar">
   <div class="top-group">
-    <button id="undoBtn" class="icon-btn" aria-label="Annulla" title="Annulla">↩</button>
-    <button id="redoBtn" class="icon-btn" aria-label="Ripeti" title="Ripeti">↪</button>
-    <button id="fitBtn" class="icon-btn" aria-label="Inquadra pista" title="Inquadra">⌖</button>
+    <button id="undoBtn" class="icon-btn" aria-label="Annulla">↩</button>
+    <button id="redoBtn" class="icon-btn" aria-label="Ripeti">↪</button>
+    <button id="fitBtn" class="icon-btn" aria-label="Inquadra">⌖</button>
   </div>
   <div class="top-group">
-    <button id="exportQuickBtn" class="icon-btn primary-icon" aria-label="Esporta JSON" title="Esporta JSON">⬇</button>
-    <button id="menuBtn" class="icon-btn" aria-label="Menu" title="Menu">☰</button>
+    <button id="dockToggle" class="icon-btn" aria-label="Mostra/nascondi barra">▾</button>
+    <button id="exportQuickBtn" class="icon-btn primary-icon" aria-label="Esporta">⬇</button>
+    <button id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
   </div>
 </div>
 
@@ -226,14 +222,14 @@ body.dock-collapsed .dock{display:none}
 
 <div id="actionPill" class="action-pill">
   <button id="actionCancel" class="btn-cancel" type="button">✕</button>
-  <button id="actionFlip" class="btn-alt" type="button" hidden>⇄ Altro lato</button>
-  <button id="actionApply" class="btn-ok" type="button">✓ Applica</button>
+  <button id="actionFlip" class="btn-alt" type="button" hidden>⇄</button>
+  <button id="actionApply" class="btn-ok" type="button">✓</button>
 </div>
 
 <div id="sizePop" class="size-pop">
   <div class="size-pop-head">
-    <span>Spessore / Lato</span>
-    <strong id="sizePopLabel">1 blocco</strong>
+    <span>Lato</span>
+    <strong id="sizePopLabel">1</strong>
   </div>
   <div class="size-presets" id="sizePresets">
     <button type="button" data-sz="1">1</button>
@@ -249,33 +245,32 @@ body.dock-collapsed .dock{display:none}
 </div>
 
 <div class="dock-wrap">
-  <button id="dockToggle" class="dock-toggle" type="button">▾ Nascondi barra</button>
   <div class="dock" id="dock">
     <div class="row-scroll" id="palette">
       <button class="chip selected" data-type="ice" type="button"><i class="swatch" style="background:#409dec"></i>Ice</button>
       <button class="chip" data-type="blueIce" type="button"><i class="swatch" style="background:#006cf2"></i>Blue</button>
-      <button class="chip" data-type="whiteGround" type="button"><i class="swatch" data-swatch="whiteGround" style="background:#f8f8f8"></i>Bianco 0,8</button>
-      <button class="chip" data-type="ground" type="button"><i class="swatch" data-swatch="ground" style="background:#aa5500"></i>Terra 0,7</button>
+      <button class="chip" data-type="whiteGround" type="button"><i class="swatch" data-swatch="whiteGround" style="background:#f8f8f8"></i>Bianco</button>
+      <button class="chip" data-type="ground" type="button"><i class="swatch" data-swatch="ground" style="background:#aa5500"></i>Terra</button>
       <button class="chip" data-type="wall" type="button"><i class="swatch" data-swatch="wall" style="background:#111111"></i>Muro</button>
-      <button class="chip" data-type="obstacle" type="button"><i class="swatch" style="background:#ed873e"></i>Ostacolo</button>
-      <button class="chip" data-type="customBlock" type="button"><i class="swatch" data-swatch="customBlock" style="background:#bd83e8"></i>Colore</button>
-      <input id="customColor" class="custom-color-input" type="color" value="#bd83e8" aria-label="Colore blocco personalizzato">
+      <button class="chip" data-type="obstacle" type="button"><i class="swatch" style="background:#ed873e"></i>Ost.</button>
+      <button class="chip" data-type="customBlock" type="button"><i class="swatch" data-swatch="customBlock" style="background:#bd83e8"></i>Col.</button>
+      <input id="customColor" class="custom-color-input" type="color" value="#bd83e8" aria-label="Colore">
     </div>
     <div class="dock-bottom-row">
       <div class="row-scroll" id="tools">
-        <button class="tool-btn selected" data-tool="paint" type="button">✏️ Disegna</button>
-        <button class="tool-btn" data-tool="line" type="button">╱ Linea</button>
-        <button class="tool-btn" data-tool="smooth" type="button">〰 Smooth</button>
-        <button class="tool-btn" data-tool="border" type="button">⬚ Contorno</button>
-        <button class="tool-btn" data-tool="rect" type="button">▭ Rettang.</button>
-        <button class="tool-btn" data-tool="fill" type="button">🪣 Riempi</button>
-        <button class="tool-btn" data-tool="erase" type="button">⌫ Gomma</button>
-        <button class="tool-btn" data-tool="pan" type="button">✋ Sposta</button>
+        <button class="tool-btn selected" data-tool="paint" type="button" title="Disegna">✏️</button>
+        <button class="tool-btn" data-tool="line" type="button" title="Linea">╱</button>
+        <button class="tool-btn" data-tool="smooth" type="button" title="Smooth">Smooth</button>
+        <button class="tool-btn" data-tool="border" type="button" title="Contorno">Bordo</button>
+        <button class="tool-btn" data-tool="rect" type="button" title="Rettangolo">▭</button>
+        <button class="tool-btn" data-tool="fill" type="button" title="Riempi">🪣</button>
+        <button class="tool-btn" data-tool="erase" type="button" title="Gomma">⌫</button>
+        <button class="tool-btn" data-tool="pan" type="button" title="Sposta">✋</button>
       </div>
       <div class="size-pill">
-        <button id="sizeMinus" type="button" aria-label="Riduci lato">−</button>
-        <button id="sizeBtn" class="size-val" type="button" title="Scegli spessore">1</button>
-        <button id="sizePlus" type="button" aria-label="Aumenta lato">+</button>
+        <button id="sizeMinus" type="button" aria-label="Riduci">−</button>
+        <button id="sizeBtn" class="size-val" type="button">1</button>
+        <button id="sizePlus" type="button" aria-label="Aumenta">+</button>
       </div>
     </div>
   </div>
@@ -285,41 +280,39 @@ body.dock-collapsed .dock{display:none}
   <div class="sheet" id="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <h2>Ice Track · Mobile</h2>
+      <h2>Ice Track</h2>
       <button id="sheetClose" class="icon-btn" type="button" aria-label="Chiudi">✕</button>
     </div>
 
     <div class="sheet-sec">
-      <h3>File &amp; Esportazione (compatibile Desktop)</h3>
-      <label class="field-row">Nome pista <input id="trackName" type="text" value="mio-track" placeholder="nome-track"></label>
+      <h3>File</h3>
+      <label class="field-row">Nome <input id="trackName" type="text" value="mio-track" placeholder="nome-track"></label>
       <div class="sheet-grid" style="margin-top:8px">
-        <button id="exportBtn" class="sheet-btn primary" type="button">⬇ Esporta / Condividi JSON</button>
+        <button id="exportBtn" class="sheet-btn primary" type="button">⬇ Esporta JSON</button>
         <button id="importBtn" class="sheet-btn" type="button">⬆ Apri JSON</button>
       </div>
       <input id="importInput" type="file" accept=".json,application/json" hidden>
-      <p class="hint-note">Esporta un file <b>ice-track-layout-v1</b> identico all’editor desktop (nessun invio a Roblox). Su iPhone/Android usa la condivisione nativa per mandarlo via AirDrop / iCloud / Drive. Salvataggio automatico locale sempre attivo.</p>
     </div>
 
     <div class="sheet-sec">
-      <h3>Azioni Rapide</h3>
+      <h3>Azioni</h3>
       <div class="sheet-grid">
         <button id="outlineWallsBtn" class="sheet-btn" type="button">Muri attorno a Ice</button>
-        <button id="swapGroundBtn" class="sheet-btn" type="button">Scambia Terra ↔ Bianco</button>
-        <button id="fullscreenBtn" class="sheet-btn" type="button">⛶ Schermo intero</button>
+        <button id="swapGroundBtn" class="sheet-btn" type="button">Terra ↔ Bianco</button>
+        <button id="fullscreenBtn" class="sheet-btn" type="button">⛶ Fullscreen</button>
         <button id="clearBtn" class="sheet-btn danger" type="button">🗑 Nuova pista</button>
       </div>
-      <p class="hint-note">Suggerimento iPhone: apri in Safari → <b>Condividi → Aggiungi alla schermata Home</b> per averlo a schermo intero vero senza barre del browser.</p>
     </div>
 
     <div class="sheet-sec">
-      <h3>Stile Blocchi (salvati nel JSON)</h3>
-      <div class="field-row"><span>Terra (SmoothPlastic)</span><div style="display:flex;gap:6px;align-items:center"><input id="gColor" type="color" value="#aa5500"><input id="gSlip" type="number" step="0.01" min="0.1" max="0.97" value="0.7" style="width:74px"></div></div>
-      <div class="field-row"><span>Bianco (SmoothPlastic)</span><div style="display:flex;gap:6px;align-items:center"><input id="wgColor" type="color" value="#f8f8f8"><input id="wgSlip" type="number" step="0.01" min="0.1" max="0.97" value="0.8" style="width:74px"></div></div>
-      <div class="field-row"><span>Muri (altezza &amp; colore)</span><div style="display:flex;gap:6px;align-items:center"><input id="wColor" type="color" value="#111111"><select id="wHeight" style="width:94px"><option value="3" selected>1 bl (3s)</option><option value="6">2 bl (6s)</option><option value="9">3 bl (9s)</option><option value="12">4 bl (12s)</option></select></div></div>
+      <h3>Stile</h3>
+      <div class="field-row"><span>Terra</span><div style="display:flex;gap:6px;align-items:center"><input id="gColor" type="color" value="#aa5500"><input id="gSlip" type="number" step="0.01" min="0.1" max="0.97" value="0.7" style="width:74px"></div></div>
+      <div class="field-row"><span>Bianco</span><div style="display:flex;gap:6px;align-items:center"><input id="wgColor" type="color" value="#f8f8f8"><input id="wgSlip" type="number" step="0.01" min="0.1" max="0.97" value="0.8" style="width:74px"></div></div>
+      <div class="field-row"><span>Muri</span><div style="display:flex;gap:6px;align-items:center"><input id="wColor" type="color" value="#111111"><select id="wHeight" style="width:94px"><option value="3" selected>1 bl (3s)</option><option value="6">2 bl (6s)</option><option value="9">3 bl (9s)</option><option value="12">4 bl (12s)</option></select></div></div>
     </div>
 
     <div class="sheet-sec">
-      <h3>Statistiche Pista</h3>
+      <h3>Statistiche</h3>
       <div id="statsBox" class="stats-box">0 blocchi</div>
     </div>
   </div>
@@ -389,11 +382,12 @@ let strokeTouched = 0;
 let lastPaintCell = null;
 let panStartPt = null, panStartOffset = null;
 
-function showToast(msg, sticky = false) {
+function showToast(msg) {
+  if (!msg) return;
   toastEl.textContent = msg;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
-  if (!sticky) toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1400);
 }
 
 function cloneCells() {
@@ -427,7 +421,6 @@ function undo() {
   updateHistoryUI();
   scheduleSave();
   render();
-  showToast('Annullato');
 }
 function redo() {
   if (!future.length) return;
@@ -438,7 +431,6 @@ function redo() {
   updateHistoryUI();
   scheduleSave();
   render();
-  showToast('Ripetuto');
 }
 function updateHistoryUI() {
   document.getElementById('undoBtn').disabled = !history.length;
@@ -714,21 +706,21 @@ function updateActionPill() {
   if (tool === 'smooth' && smoothState && smoothState.b) {
     actionPill.classList.add('visible');
     actionFlip.hidden = true;
-    actionApply.textContent = '✓ Applica curva';
+    actionApply.textContent = '✓';
+    actionApply.disabled = false;
   } else if (tool === 'border' && borderState && borderState.end) {
     actionPill.classList.add('visible');
     actionFlip.hidden = false;
-    actionApply.textContent = '✓ Applica bordo';
+    actionApply.textContent = '✓';
+    actionApply.disabled = false;
   } else if ((tool === 'smooth' && smoothState) || (tool === 'border' && borderState)) {
     actionPill.classList.add('visible');
     actionFlip.hidden = true;
-    actionApply.textContent = '✓ OK';
+    actionApply.textContent = '✓';
     actionApply.disabled = true;
-    return;
   } else {
     actionPill.classList.remove('visible');
   }
-  actionApply.disabled = false;
 }
 
 // Coordinate conversions
@@ -800,9 +792,9 @@ function drawScaleBar(r, s) {
   if (barW < 36 || barW > r.width - 36) return;
   const dockEl = document.getElementById('dock');
   const dockCollapsed = document.body.classList.contains('dock-collapsed');
-  const dockH = dockCollapsed ? 44 : (dockEl.getBoundingClientRect().height + 44);
-  const barX = Math.round(r.width - barW - 16);
-  const barY = Math.round(r.height - dockH - barH - 12);
+  const dockH = dockCollapsed ? 12 : (dockEl.getBoundingClientRect().height + 14);
+  const barX = Math.round(r.width - barW - 14);
+  const barY = Math.round(r.height - dockH - barH - 8);
   const halfW = barW / 2;
 
   ctx.save();
@@ -1009,7 +1001,6 @@ canvas.addEventListener('pointerdown', e => {
       smoothState = { a: c, b: null, ctrl: null };
       updateActionPill();
       render();
-      showToast('Tocca il punto finale B', true);
       return;
     }
     if (!smoothState.b) {
@@ -1017,10 +1008,8 @@ canvas.addEventListener('pointerdown', e => {
       smoothState.ctrl = { x: Math.round((smoothState.a.x + c.x) / 2), z: Math.round((smoothState.a.z + c.z) / 2) };
       updateActionPill();
       render();
-      showToast('Trascina il pallino giallo M per piegare la curva, poi ✓', true);
       return;
     }
-    // Tap anywhere when A & B exist moves midpoint M right there & lets you drag immediately!
     smoothState.ctrl = c;
     activeHandle = 'ctrl';
     render();
@@ -1032,20 +1021,18 @@ canvas.addEventListener('pointerdown', e => {
     if (h) { activeHandle = h; return; }
     if (!borderState) {
       const snap = snapToLocalRing(c, 5);
-      if (!snap) { showToast('Tocca vicino al bordo di un blocco esistente'); return; }
+      if (!snap) return;
       borderState = buildRingSession(snap);
       updateActionPill();
       render();
-      showToast('Tocca il 2° punto lungo il bordo', true);
       return;
     }
     const snapEnd = snapToSessionRing(c, borderState.ring, 7);
-    if (!snapEnd) { showToast('Tocca sullo stesso bordo (o ✕ per annullare)'); return; }
+    if (!snapEnd) return;
     borderState.end = snapEnd;
     activeHandle = 'end';
     updateActionPill();
     render();
-    showToast('Trascina 1/2 per rifinire, ⇄ per altro lato, ✓ per applicare', true);
     return;
   }
 
@@ -1192,9 +1179,8 @@ canvas.addEventListener('wheel', e => {
 actionApply.onclick = () => {
   if (tool === 'smooth' && smoothState?.a && smoothState?.b && smoothState?.ctrl) {
     const spans = smoothCurveSpans(smoothState.a, smoothState.b, smoothState.ctrl, brushSize);
-    begin(); const n = paintSpans(spans, selectedType); end();
+    begin(); paintSpans(spans, selectedType); end();
     clearSessions(); render();
-    showToast(`Curva applicata (${n} blocchi)`);
   } else if (tool === 'border' && borderState?.start && borderState?.end) {
     const path = traceBorderPath(borderState);
     const pts = expandBorderCells(path, borderState.ring, brushSize);
@@ -1202,17 +1188,15 @@ actionApply.onclick = () => {
     for (const p of pts) setCell(p.x, p.z, selectedType);
     end();
     clearSessions(); render();
-    showToast(`Contorno applicato (${pts.length} blocchi)`);
   }
 };
 document.getElementById('actionCancel').onclick = () => {
-  clearSessions(); render(); showToast('Annullato');
+  clearSessions(); render();
 };
 actionFlip.onclick = () => {
   if (borderState) {
     borderState.flip = !borderState.flip;
     render();
-    showToast(borderState.flip ? 'Lato alternativo' : 'Lato più corto');
   }
 };
 
@@ -1222,20 +1206,19 @@ function fitView() {
   if (!all.length) {
     const r = canvas.getBoundingClientRect();
     zoom = 0.85; offset = { x: r.width / 2, y: r.height / 2 };
-    render(); showToast('Vista centrata'); return;
+    render(); return;
   }
   const minX = Math.min(...all.map(c => c.x)), maxX = Math.max(...all.map(c => c.x));
   const minZ = Math.min(...all.map(c => c.z)), maxZ = Math.max(...all.map(c => c.z));
   const r = canvas.getBoundingClientRect();
   const w = maxX - minX + 1, h = maxZ - minZ + 1;
-  const topPad = 70, botPad = 140;
-  const availW = Math.max(120, r.width - 36), availH = Math.max(120, r.height - topPad - botPad);
-  zoom = Math.min(3, Math.max(0.03, Math.min(availW / (w * 24), availH / (h * 24)) * 0.88));
+  const topPad = 48, botPad = 86;
+  const availW = Math.max(120, r.width - 28), availH = Math.max(120, r.height - topPad - botPad);
+  zoom = Math.min(3, Math.max(0.03, Math.min(availW / (w * 24), availH / (h * 24)) * 0.9));
   const s = 24 * zoom;
   offset.x = r.width / 2 - (minX + maxX + 1) * s / 2;
   offset.y = topPad + availH / 2 - (minZ + maxZ + 1) * s / 2;
   render();
-  showToast('Pista inquadrata');
 }
 
 // Dock & UI Controls
@@ -1243,7 +1226,7 @@ function setBrushSize(sz) {
   brushSize = Math.max(1, Math.min(40, Math.round(sz)));
   document.getElementById('sizeBtn').textContent = String(brushSize);
   document.getElementById('sizeSlider').value = String(brushSize);
-  document.getElementById('sizePopLabel').textContent = `${brushSize} ${brushSize === 1 ? 'blocco' : 'blocchi'}`;
+  document.getElementById('sizePopLabel').textContent = String(brushSize);
   document.querySelectorAll('#sizePresets button').forEach(b => b.classList.toggle('active', Number(b.dataset.sz) === brushSize));
   render();
 }
@@ -1260,17 +1243,6 @@ function selectTool(t) {
   if (t !== tool) clearSessions();
   tool = t;
   document.querySelectorAll('#tools button').forEach(b => b.classList.toggle('selected', b.dataset.tool === t));
-  const tips = {
-    paint: 'Disegna: trascina · 2 dita = zoom/sposta',
-    line: 'Linea: trascina da inizio a fine',
-    smooth: 'Smooth: tocca punto A, poi punto B, poi curva M',
-    border: 'Contorno: tocca 2 punti sul bordo di un’area',
-    rect: 'Rettangolo: trascina tra due angoli',
-    fill: 'Riempi: tocca dentro un’area chiusa',
-    erase: 'Gomma: trascina per cancellare',
-    pan: 'Sposta: trascina con 1 dito'
-  };
-  showToast(tips[t] || '');
   render();
 }
 document.getElementById('tools').onclick = e => {
@@ -1295,7 +1267,7 @@ document.getElementById('customColor').oninput = e => {
 
 document.getElementById('dockToggle').onclick = () => {
   const collapsed = document.body.classList.toggle('dock-collapsed');
-  document.getElementById('dockToggle').textContent = collapsed ? '▴ Mostra barra' : '▾ Nascondi barra';
+  document.getElementById('dockToggle').textContent = collapsed ? '▴' : '▾';
   sizePop.classList.remove('open');
   render();
 };
@@ -1535,7 +1507,6 @@ function loadDraft() {
       zoom = d.zoom; offset = { ...d.offset }; viewInit = true;
     }
     syncStyleInputs();
-    if (cells.size) showToast(`Bozza ripristinata (${cells.size} blocchi)`);
   } catch {}
 }
 
