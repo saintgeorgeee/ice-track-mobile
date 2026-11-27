@@ -1,0 +1,1554 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ice Track">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#111925">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23111925'/%3E%3Crect x='28' y='28' width='124' height='124' rx='28' fill='none' stroke='%23409dec' stroke-width='22'/%3E%3Ccircle cx='90' cy='90' r='22' fill='%23006cf2'/%3E%3C/svg%3E">
+<title>Ice Track · Mobile Editor</title>
+<style>
+:root{
+  --bg:#111925;
+  --glass:rgba(15,23,36,0.88);
+  --glass-strong:rgba(18,28,43,0.96);
+  --border:rgba(148,175,204,0.24);
+  --text:#eef5ff;
+  --muted:#9ab0c9;
+  --accent:#409dec;
+  --ok:#22c55e;
+  --danger:#ef4444;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-left:env(safe-area-inset-left,0px);
+  --safe-right:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{
+  margin:0;padding:0;width:100%;height:100%;height:100dvh;
+  overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  overscroll-behavior:none;
+}
+#canvas{
+  position:fixed;inset:0;width:100%;height:100%;display:block;
+  touch-action:none;background:var(--bg);
+}
+button,input,select{font:inherit;color:inherit}
+button{
+  border:1px solid var(--border);background:rgba(30,43,62,0.86);
+  color:var(--text);border-radius:12px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  transition:transform .08s ease,background .12s ease,border-color .12s ease;
+}
+button:active{transform:scale(0.95)}
+button:disabled{opacity:.38;pointer-events:none}
+
+/* Top Floating Bar */
+.top-bar{
+  position:fixed;top:calc(10px + var(--safe-top));
+  left:calc(10px + var(--safe-left));right:calc(10px + var(--safe-right));
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  pointer-events:none;z-index:20;
+}
+.top-group{
+  display:flex;align-items:center;gap:6px;pointer-events:auto;
+  background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);border-radius:16px;padding:4px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+}
+.icon-btn{
+  width:40px;height:40px;padding:0;border:none;background:transparent;border-radius:12px;
+  font-size:18px;font-weight:600;
+}
+.icon-btn:active{background:rgba(255,255,255,0.12)}
+.icon-btn.primary-icon{background:rgba(64,157,236,0.22);color:#8fd0ff}
+.toast{
+  position:fixed;top:calc(60px + var(--safe-top));left:50%;transform:translateX(-50%);
+  max-width:min(92vw,420px);padding:7px 13px;border-radius:999px;
+  background:rgba(11,18,29,0.92);border:1px solid var(--border);
+  color:var(--text);font-size:12px;font-weight:500;text-align:center;
+  pointer-events:none;z-index:25;box-shadow:0 6px 20px rgba(0,0,0,0.4);
+  opacity:0;transition:opacity .2s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.toast.show{opacity:1}
+
+/* Floating Confirm Pill for Smooth / Contorno */
+.action-pill{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(132px + var(--safe-bottom));
+  display:none;align-items:center;gap:8px;padding:6px;
+  background:var(--glass-strong);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(148,175,204,0.34);border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:28;
+}
+.action-pill.visible{display:flex}
+body.dock-collapsed .action-pill{bottom:calc(62px + var(--safe-bottom))}
+.action-pill button{height:40px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:600}
+.action-pill .btn-ok{background:#16a34a;border-color:#22c55e;color:#fff}
+.action-pill .btn-cancel{background:rgba(239,68,68,0.18);border-color:rgba(239,68,68,0.45);color:#fca5a5}
+.action-pill .btn-alt{background:rgba(64,157,236,0.2);border-color:rgba(64,157,236,0.45);color:#bae6fd}
+
+/* Brush Size Popover */
+.size-pop{
+  position:fixed;right:calc(12px + var(--safe-right));
+  bottom:calc(134px + var(--safe-bottom));
+  width:min(310px,calc(100vw - 24px));
+  background:var(--glass-strong);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(148,175,204,0.34);border-radius:18px;padding:12px;
+  box-shadow:0 14px 36px rgba(0,0,0,0.55);z-index:30;display:none;
+}
+.size-pop.open{display:block}
+.size-pop-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:10px}
+.size-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.size-presets button{height:36px;font-size:13px;font-weight:600;border-radius:10px}
+.size-presets button.active{background:var(--accent);border-color:#7cc4ff;color:#08121f}
+.size-pop input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+
+/* Bottom Dock */
+.dock-wrap{
+  position:fixed;left:calc(8px + var(--safe-left));right:calc(8px + var(--safe-right));
+  bottom:calc(8px + var(--safe-bottom));z-index:22;
+  display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;
+}
+.dock-toggle{
+  pointer-events:auto;height:24px;padding:0 14px;border-radius:999px;
+  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border);font-size:11px;color:var(--muted);
+}
+.dock{
+  pointer-events:auto;width:100%;max-width:680px;
+  background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--border);border-radius:20px;padding:7px 8px;
+  display:flex;flex-direction:column;gap:7px;
+  box-shadow:0 12px 34px rgba(0,0,0,0.45);
+}
+body.dock-collapsed .dock{display:none}
+.row-scroll{
+  display:flex;align-items:center;gap:6px;overflow-x:auto;
+  scrollbar-width:none;-ms-overflow-style:none;padding:1px;
+}
+.row-scroll::-webkit-scrollbar{display:none}
+.dock-bottom-row{display:flex;align-items:center;gap:6px}
+.dock-bottom-row .row-scroll{flex:1;min-width:0}
+
+/* Block Chips */
+.chip{
+  flex:0 0 auto;height:36px;padding:0 11px;border-radius:12px;
+  background:rgba(28,40,58,0.85);border:1.5px solid transparent;
+  font-size:12px;font-weight:600;white-space:nowrap;
+}
+.chip.selected{border-color:#7cc4ff;background:rgba(64,157,236,0.22);box-shadow:0 0 0 1px rgba(124,196,255,0.35)}
+.swatch{
+  width:15px;height:15px;border-radius:5px;flex:0 0 auto;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.28);
+}
+.custom-color-input{
+  width:24px;height:24px;padding:0;border:none;border-radius:6px;
+  background:transparent;cursor:pointer;
+}
+
+/* Tool Buttons */
+.tool-btn{
+  flex:0 0 auto;height:40px;padding:0 11px;border-radius:12px;
+  background:rgba(28,40,58,0.75);border:1.5px solid transparent;
+  font-size:12px;font-weight:600;white-space:nowrap;
+}
+.tool-btn.selected{background:var(--accent);color:#071322;border-color:#8fd0ff}
+.size-pill{
+  flex:0 0 auto;display:flex;align-items:center;gap:2px;
+  background:rgba(12,20,32,0.85);border:1px solid var(--border);
+  border-radius:12px;padding:2px;height:40px;
+}
+.size-pill button{
+  height:34px;min-width:30px;padding:0 6px;border:none;background:transparent;
+  border-radius:9px;font-size:15px;font-weight:700;
+}
+.size-pill .size-val{min-width:36px;font-size:13px;background:rgba(64,157,236,0.18);color:#9ad4ff}
+
+/* Bottom Sheet Menu */
+.sheet-backdrop{
+  position:fixed;inset:0;background:rgba(4,9,16,0.62);z-index:40;
+  display:none;align-items:flex-end;justify-content:center;
+}
+.sheet-backdrop.open{display:flex}
+.sheet{
+  width:100%;max-width:560px;max-height:86dvh;overflow-y:auto;
+  background:#141f30;border-top:1px solid rgba(148,175,204,0.3);
+  border-radius:22px 22px 0 0;padding:14px 16px calc(18px + var(--safe-bottom));
+  box-shadow:0 -16px 48px rgba(0,0,0,0.6);
+}
+.sheet-handle{width:40px;height:4px;border-radius:99px;background:rgba(148,175,204,0.35);margin:0 auto 12px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sheet-head h2{margin:0;font-size:17px;font-weight:700}
+.sheet-sec{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(148,175,204,0.14)}
+.sheet-sec:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.sheet-sec h3{margin:0 0 9px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sheet-btn{height:44px;padding:0 12px;border-radius:12px;font-size:13px;font-weight:600;width:100%}
+.sheet-btn.primary{background:var(--accent);border-color:#7cc4ff;color:#071322}
+.sheet-btn.danger{background:rgba(239,68,68,0.16);border-color:rgba(239,68,68,0.45);color:#fca5a5}
+.field-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0;font-size:13px;color:var(--muted)}
+.field-row input[type=text],.field-row input[type=number],.field-row select{
+  width:155px;height:36px;padding:0 9px;border-radius:10px;
+  border:1px solid var(--border);background:#0c1420;color:var(--text);
+  user-select:text;-webkit-user-select:text;
+}
+.field-row input[type=color]{width:48px;height:34px;border:1px solid var(--border);border-radius:8px;background:#0c1420;padding:2px}
+.stats-box{
+  background:#0c1420;border:1px solid var(--border);border-radius:12px;
+  padding:10px 12px;font-size:12px;line-height:1.6;color:#bfd3e8;
+}
+.hint-note{font-size:11px;color:var(--muted);line-height:1.45;margin:8px 0 0}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<div class="top-bar">
+  <div class="top-group">
+    <button id="undoBtn" class="icon-btn" aria-label="Annulla" title="Annulla">↩</button>
+    <button id="redoBtn" class="icon-btn" aria-label="Ripeti" title="Ripeti">↪</button>
+    <button id="fitBtn" class="icon-btn" aria-label="Inquadra pista" title="Inquadra">⌖</button>
+  </div>
+  <div class="top-group">
+    <button id="exportQuickBtn" class="icon-btn primary-icon" aria-label="Esporta JSON" title="Esporta JSON">⬇</button>
+    <button id="menuBtn" class="icon-btn" aria-label="Menu" title="Menu">☰</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+
+<div id="actionPill" class="action-pill">
+  <button id="actionCancel" class="btn-cancel" type="button">✕</button>
+  <button id="actionFlip" class="btn-alt" type="button" hidden>⇄ Altro lato</button>
+  <button id="actionApply" class="btn-ok" type="button">✓ Applica</button>
+</div>
+
+<div id="sizePop" class="size-pop">
+  <div class="size-pop-head">
+    <span>Spessore / Lato</span>
+    <strong id="sizePopLabel">1 blocco</strong>
+  </div>
+  <div class="size-presets" id="sizePresets">
+    <button type="button" data-sz="1">1</button>
+    <button type="button" data-sz="3">3</button>
+    <button type="button" data-sz="5">5</button>
+    <button type="button" data-sz="8">8</button>
+    <button type="button" data-sz="10">10</button>
+    <button type="button" data-sz="12">12</button>
+    <button type="button" data-sz="16">16</button>
+    <button type="button" data-sz="24">24</button>
+  </div>
+  <input id="sizeSlider" type="range" min="1" max="40" step="1" value="1">
+</div>
+
+<div class="dock-wrap">
+  <button id="dockToggle" class="dock-toggle" type="button">▾ Nascondi barra</button>
+  <div class="dock" id="dock">
+    <div class="row-scroll" id="palette">
+      <button class="chip selected" data-type="ice" type="button"><i class="swatch" style="background:#409dec"></i>Ice</button>
+      <button class="chip" data-type="blueIce" type="button"><i class="swatch" style="background:#006cf2"></i>Blue</button>
+      <button class="chip" data-type="whiteGround" type="button"><i class="swatch" data-swatch="whiteGround" style="background:#f8f8f8"></i>Bianco 0,8</button>
+      <button class="chip" data-type="ground" type="button"><i class="swatch" data-swatch="ground" style="background:#aa5500"></i>Terra 0,7</button>
+      <button class="chip" data-type="wall" type="button"><i class="swatch" data-swatch="wall" style="background:#111111"></i>Muro</button>
+      <button class="chip" data-type="obstacle" type="button"><i class="swatch" style="background:#ed873e"></i>Ostacolo</button>
+      <button class="chip" data-type="customBlock" type="button"><i class="swatch" data-swatch="customBlock" style="background:#bd83e8"></i>Colore</button>
+      <input id="customColor" class="custom-color-input" type="color" value="#bd83e8" aria-label="Colore blocco personalizzato">
+    </div>
+    <div class="dock-bottom-row">
+      <div class="row-scroll" id="tools">
+        <button class="tool-btn selected" data-tool="paint" type="button">✏️ Disegna</button>
+        <button class="tool-btn" data-tool="line" type="button">╱ Linea</button>
+        <button class="tool-btn" data-tool="smooth" type="button">〰 Smooth</button>
+        <button class="tool-btn" data-tool="border" type="button">⬚ Contorno</button>
+        <button class="tool-btn" data-tool="rect" type="button">▭ Rettang.</button>
+        <button class="tool-btn" data-tool="fill" type="button">🪣 Riempi</button>
+        <button class="tool-btn" data-tool="erase" type="button">⌫ Gomma</button>
+        <button class="tool-btn" data-tool="pan" type="button">✋ Sposta</button>
+      </div>
+      <div class="size-pill">
+        <button id="sizeMinus" type="button" aria-label="Riduci lato">−</button>
+        <button id="sizeBtn" class="size-val" type="button" title="Scegli spessore">1</button>
+        <button id="sizePlus" type="button" aria-label="Aumenta lato">+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="sheetBackdrop" class="sheet-backdrop">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h2>Ice Track · Mobile</h2>
+      <button id="sheetClose" class="icon-btn" type="button" aria-label="Chiudi">✕</button>
+    </div>
+
+    <div class="sheet-sec">
+      <h3>File &amp; Esportazione (compatibile Desktop)</h3>
+      <label class="field-row">Nome pista <input id="trackName" type="text" value="mio-track" placeholder="nome-track"></label>
+      <div class="sheet-grid" style="margin-top:8px">
+        <button id="exportBtn" class="sheet-btn primary" type="button">⬇ Esporta / Condividi JSON</button>
+        <button id="importBtn" class="sheet-btn" type="button">⬆ Apri JSON</button>
+      </div>
+      <input id="importInput" type="file" accept=".json,application/json" hidden>
+      <p class="hint-note">Esporta un file <b>ice-track-layout-v1</b> identico all’editor desktop (nessun invio a Roblox). Su iPhone/Android usa la condivisione nativa per mandarlo via AirDrop / iCloud / Drive. Salvataggio automatico locale sempre attivo.</p>
+    </div>
+
+    <div class="sheet-sec">
+      <h3>Azioni Rapide</h3>
+      <div class="sheet-grid">
+        <button id="outlineWallsBtn" class="sheet-btn" type="button">Muri attorno a Ice</button>
+        <button id="swapGroundBtn" class="sheet-btn" type="button">Scambia Terra ↔ Bianco</button>
+        <button id="fullscreenBtn" class="sheet-btn" type="button">⛶ Schermo intero</button>
+        <button id="clearBtn" class="sheet-btn danger" type="button">🗑 Nuova pista</button>
+      </div>
+      <p class="hint-note">Suggerimento iPhone: apri in Safari → <b>Condividi → Aggiungi alla schermata Home</b> per averlo a schermo intero vero senza barre del browser.</p>
+    </div>
+
+    <div class="sheet-sec">
+      <h3>Stile Blocchi (salvati nel JSON)</h3>
+      <div class="field-row"><span>Terra (SmoothPlastic)</span><div style="display:flex;gap:6px;align-items:center"><input id="gColor" type="color" value="#aa5500"><input id="gSlip" type="number" step="0.01" min="0.1" max="0.97" value="0.7" style="width:74px"></div></div>
+      <div class="field-row"><span>Bianco (SmoothPlastic)</span><div style="display:flex;gap:6px;align-items:center"><input id="wgColor" type="color" value="#f8f8f8"><input id="wgSlip" type="number" step="0.01" min="0.1" max="0.97" value="0.8" style="width:74px"></div></div>
+      <div class="field-row"><span>Muri (altezza &amp; colore)</span><div style="display:flex;gap:6px;align-items:center"><input id="wColor" type="color" value="#111111"><select id="wHeight" style="width:94px"><option value="3" selected>1 bl (3s)</option><option value="6">2 bl (6s)</option><option value="9">3 bl (9s)</option><option value="12">4 bl (12s)</option></select></div></div>
+    </div>
+
+    <div class="sheet-sec">
+      <h3>Statistiche Pista</h3>
+      <div id="statsBox" class="stats-box">0 blocchi</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const CELL = 3;
+const STORAGE_KEY = 'ice-track-mobile-draft-v1';
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const toastEl = document.getElementById('toast');
+const actionPill = document.getElementById('actionPill');
+const actionFlip = document.getElementById('actionFlip');
+const actionApply = document.getElementById('actionApply');
+const sizePop = document.getElementById('sizePop');
+
+const colors = {
+  ice: '#409dec',
+  blueIce: '#006cf2',
+  whiteGround: '#f8f8f8',
+  ground: '#aa5500',
+  wall: '#111111',
+  obstacle: '#ed873e',
+  customBlock: '#bd83e8',
+  erase: '#f06a6a'
+};
+
+const styleCfg = {
+  trackName: 'mio-track',
+  ground: { material: 'SmoothPlastic', color: '#aa5500', slipperiness: 0.7 },
+  whiteGround: { material: 'SmoothPlastic', color: '#f8f8f8', slipperiness: 0.8 },
+  wall: { height: 3, material: 'SmoothPlastic', color: '#111111' },
+  customColor: '#bd83e8'
+};
+
+const key = (x, z) => `${x},${z}`;
+const DIRS8 = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+const DIRS4 = [[1,0],[-1,0],[0,1],[0,-1]];
+
+let cells = new Map();
+let tool = 'paint';
+let selectedType = 'ice';
+let brushSize = 1;
+let zoom = 0.85;
+let offset = { x: 0, y: 0 };
+let viewInit = false;
+
+let history = [], future = [], changed = false;
+let toastTimer = null;
+let saveTimer = null;
+
+// Interactive tool sessions (touch-first with draggable handles!)
+let dragStartCell = null, dragEndCell = null; // line / rect
+let smoothState = null; // { a, b, ctrl }
+let borderState = null; // { start, end, ring, parent, flip }
+let activeHandle = null; // 'a' | 'b' | 'ctrl' | 'start' | 'end'
+
+// Multi-touch pointer engine
+const pointers = new Map();
+let pinching = false;
+let multiTouchLock = false;
+let pinchStartDist = 0, pinchStartZoom = 1, pinchStartMid = null, pinchStartOffset = null;
+let strokePointerId = null;
+let strokeStartedAt = 0;
+let strokeTouched = 0;
+let lastPaintCell = null;
+let panStartPt = null, panStartOffset = null;
+
+function showToast(msg, sticky = false) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  if (!sticky) toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+}
+
+function cloneCells() {
+  return [...cells.values()].map(c => ({ ...c }));
+}
+function begin() {
+  history.push(cloneCells());
+  if (history.length > 35) history.shift();
+  future = [];
+  changed = false;
+  updateHistoryUI();
+}
+function end() {
+  if (!changed) history.pop();
+  else scheduleSave();
+  updateHistoryUI();
+}
+function abortCurrentUndo() {
+  if (!history.length) return;
+  const prev = history.pop();
+  cells = new Map(prev.map(c => [key(c.x, c.z), c]));
+  changed = false;
+  updateHistoryUI();
+}
+function undo() {
+  if (!history.length) return;
+  clearSessions();
+  future.push(cloneCells());
+  const prev = history.pop();
+  cells = new Map(prev.map(c => [key(c.x, c.z), c]));
+  updateHistoryUI();
+  scheduleSave();
+  render();
+  showToast('Annullato');
+}
+function redo() {
+  if (!future.length) return;
+  clearSessions();
+  history.push(cloneCells());
+  const next = future.pop();
+  cells = new Map(next.map(c => [key(c.x, c.z), c]));
+  updateHistoryUI();
+  scheduleSave();
+  render();
+  showToast('Ripetuto');
+}
+function updateHistoryUI() {
+  document.getElementById('undoBtn').disabled = !history.length;
+  document.getElementById('redoBtn').disabled = !future.length;
+}
+
+function setCell(x, z, type) {
+  const k = key(x, z), old = cells.get(k);
+  const color = type === 'customBlock' ? styleCfg.customColor : undefined;
+  if (type === null) {
+    if (!old) return;
+    cells.delete(k);
+    changed = true;
+  } else if (old?.type !== type || (type === 'customBlock' && old.color !== color)) {
+    cells.set(k, { x, z, type, ...(color ? { color } : {}) });
+    changed = true;
+  }
+}
+
+function bresenham(a, b) {
+  const out = [];
+  let dx = Math.abs(b.x - a.x), sx = a.x < b.x ? 1 : -1;
+  let dy = -Math.abs(b.z - a.z), sy = a.z < b.z ? 1 : -1;
+  let err = dx + dy, x = a.x, z = a.z;
+  while (true) {
+    out.push({ x, z });
+    if (x === b.x && z === b.z) break;
+    const e2 = 2 * err;
+    if (e2 >= dy) { err += dy; x += sx; }
+    if (e2 <= dx) { err += dx; z += sy; }
+  }
+  return out;
+}
+
+function brushSpans(points, size = brushSize) {
+  const rows = new Map();
+  const before = Math.floor((size - 1) / 2), after = size - 1 - before;
+  for (const { x, z } of points) {
+    for (let row = z - before; row <= z + after; row++) {
+      if (!rows.has(row)) rows.set(row, []);
+      rows.get(row).push([x - before, x + after]);
+    }
+  }
+  const spans = [];
+  for (const [z, ranges] of rows) {
+    ranges.sort((a, b) => a[0] - b[0]);
+    let [min, max] = ranges[0];
+    for (let i = 1; i < ranges.length; i++) {
+      const [a, b] = ranges[i];
+      if (a <= max + 1) max = Math.max(max, b);
+      else { spans.push([z, min, max]); min = a; max = b; }
+    }
+    spans.push([z, min, max]);
+  }
+  return spans;
+}
+
+function smoothCurveSpans(a, b, through, size = brushSize) {
+  const cx = 2 * through.x - (a.x + b.x) / 2;
+  const cz = 2 * through.z - (a.z + b.z) / 2;
+  const len = Math.hypot(cx - a.x, cz - a.z) + Math.hypot(b.x - cx, b.z - cz);
+  const steps = Math.max(12, Math.ceil(len * 4));
+  if (size <= 2) {
+    const pts = [], seen = new Set();
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps, u = 1 - t;
+      const x = Math.round(u * u * a.x + 2 * u * t * cx + t * t * b.x);
+      const z = Math.round(u * u * a.z + 2 * u * t * cz + t * t * b.z);
+      const k = key(x, z);
+      if (!seen.has(k)) { seen.add(k); pts.push({ x, z }); }
+    }
+    return brushSpans(pts, size);
+  }
+  const r = size * 0.5, r2 = r * r, rows = new Map();
+  const add = (z, x0, x1) => { if (!rows.has(z)) rows.set(z, []); rows.get(z).push([x0, x1]); };
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, u = 1 - t;
+    const fx = u * u * (a.x + 0.5) + 2 * u * t * (cx + 0.5) + t * t * (b.x + 0.5);
+    const fz = u * u * (a.z + 0.5) + 2 * u * t * (cz + 0.5) + t * t * (b.z + 0.5);
+    const z0 = Math.floor(fz - r), z1 = Math.ceil(fz + r);
+    for (let z = z0; z <= z1; z++) {
+      const dz = z + 0.5 - fz, rem = r2 - dz * dz;
+      if (rem < 0) continue;
+      const dx = Math.sqrt(rem);
+      const x0 = Math.ceil(fx - dx - 0.5), x1 = Math.floor(fx + dx - 0.5);
+      if (x0 <= x1) add(z, x0, x1);
+    }
+  }
+  const spans = [];
+  for (const [z, ranges] of rows) {
+    ranges.sort((p, q) => p[0] - q[0]);
+    let [min, max] = ranges[0];
+    for (let i = 1; i < ranges.length; i++) {
+      const [p, q] = ranges[i];
+      if (p <= max + 1) max = Math.max(max, q);
+      else { spans.push([z, min, max]); min = p; max = q; }
+    }
+    spans.push([z, min, max]);
+  }
+  return spans;
+}
+
+function paintSpans(spans, type = selectedType) {
+  let count = 0;
+  for (const [z, min, max] of spans) {
+    for (let x = min; x <= max; x++) { setCell(x, z, type); count++; }
+  }
+  return count;
+}
+
+// Contorno (Border) algorithm
+function isRingCell(x, z) {
+  if (cells.has(key(x, z))) return false;
+  for (const [dx, dz] of DIRS8) if (cells.has(key(x + dx, z + dz))) return true;
+  return false;
+}
+function snapToLocalRing(c, maxR = 4) {
+  if (!c || !cells.size) return null;
+  if (isRingCell(c.x, c.z)) return { x: c.x, z: c.z };
+  let best = null, bestD = Infinity;
+  for (let dz = -maxR; dz <= maxR; dz++) {
+    for (let dx = -maxR; dx <= maxR; dx++) {
+      const nx = c.x + dx, nz = c.z + dz;
+      if (!isRingCell(nx, nz)) continue;
+      const d = dx * dx + dz * dz;
+      if (d < bestD) { bestD = d; best = { x: nx, z: nz }; }
+    }
+  }
+  return best;
+}
+function buildRingSession(start) {
+  const ring = new Map(), parent = new Map(), sk = key(start.x, start.z);
+  ring.set(sk, start); parent.set(sk, null);
+  const q = [start];
+  for (let qi = 0; qi < q.length && ring.size < 60000; qi++) {
+    const cur = q[qi], ck = key(cur.x, cur.z);
+    for (const [dx, dz] of DIRS4) {
+      const nx = cur.x + dx, nz = cur.z + dz, nk = key(nx, nz);
+      if (ring.has(nk) || !isRingCell(nx, nz)) continue;
+      const pt = { x: nx, z: nz };
+      ring.set(nk, pt); parent.set(nk, ck); q.push(pt);
+    }
+  }
+  return { start, end: null, ring, parent, flip: false };
+}
+function rebuildBorderParent(st) {
+  const sk = key(st.start.x, st.start.z);
+  const parent = new Map([[sk, null]]), q = [st.start];
+  for (let qi = 0; qi < q.length; qi++) {
+    const cur = q[qi], ck = key(cur.x, cur.z);
+    for (const [dx, dz] of DIRS4) {
+      const nk = key(cur.x + dx, cur.z + dz);
+      if (parent.has(nk) || !st.ring.has(nk)) continue;
+      parent.set(nk, ck); q.push(st.ring.get(nk));
+    }
+  }
+  st.parent = parent;
+}
+function snapToSessionRing(c, ring, maxR = 6) {
+  if (!c || !ring) return null;
+  const exact = ring.get(key(c.x, c.z));
+  if (exact) return exact;
+  let best = null, bestD = Infinity;
+  for (let dz = -maxR; dz <= maxR; dz++) {
+    for (let dx = -maxR; dx <= maxR; dx++) {
+      const pt = ring.get(key(c.x + dx, c.z + dz));
+      if (!pt) continue;
+      const d = dx * dx + dz * dz;
+      if (d < bestD) { bestD = d; best = pt; }
+    }
+  }
+  return best;
+}
+function traceBorderPath(st) {
+  if (!st || !st.end) return st ? [st.start] : [];
+  const sk = key(st.start.x, st.start.z), ek = key(st.end.x, st.end.z);
+  if (sk === ek) return [st.start];
+  const shortPath = [];
+  for (let k = ek; k; k = st.parent.get(k)) shortPath.push(st.ring.get(k));
+  shortPath.reverse();
+  if (!st.flip || shortPath.length <= 2) return shortPath;
+  const blocked = new Set();
+  for (let i = 1; i < Math.min(shortPath.length - 1, 4); i++) blocked.add(key(shortPath[i].x, shortPath[i].z));
+  const parent = new Map([[sk, null]]), q = [st.start];
+  let found = false;
+  for (let qi = 0; qi < q.length; qi++) {
+    const cur = q[qi], ck = key(cur.x, cur.z);
+    if (ck === ek) { found = true; break; }
+    for (const [dx, dz] of DIRS4) {
+      const nk = key(cur.x + dx, cur.z + dz);
+      if (parent.has(nk) || blocked.has(nk) || !st.ring.has(nk)) continue;
+      parent.set(nk, ck); q.push(st.ring.get(nk));
+    }
+  }
+  if (!found) return shortPath;
+  const alt = [];
+  for (let k = ek; k; k = parent.get(k)) alt.push(st.ring.get(k));
+  alt.reverse();
+  return alt;
+}
+function expandBorderCells(path, ring, layers) {
+  if (!path.length) return [];
+  if (layers <= 1) return path;
+  const pathSet = new Set(path.map(p => key(p.x, p.z)));
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (const p of path) {
+    if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+    if (p.z < minZ) minZ = p.z; if (p.z > maxZ) maxZ = p.z;
+  }
+  const pad = layers + 4, owner = new Map(), q = [];
+  for (const [k, pt] of ring) {
+    if (pt.x < minX - pad || pt.x > maxX + pad || pt.z < minZ - pad || pt.z > maxZ + pad) continue;
+    if (!pathSet.has(k)) { owner.set(k, 0); q.push([pt.x, pt.z, 1, 0]); }
+  }
+  for (const pt of path) { const k = key(pt.x, pt.z); owner.set(k, 1); q.push([pt.x, pt.z, 1, 1]); }
+  const out = [...path];
+  for (let qi = 0; qi < q.length; qi++) {
+    const [x, z, dist, own] = q[qi];
+    if (dist >= layers) continue;
+    for (const [dx, dz] of DIRS4) {
+      const nx = x + dx, nz = z + dz, nk = key(nx, nz);
+      if (owner.has(nk) || cells.has(nk)) continue;
+      owner.set(nk, own);
+      q.push([nx, nz, dist + 1, own]);
+      if (own === 1) out.push({ x: nx, z: nz });
+    }
+  }
+  return out;
+}
+
+function floodFill(c) {
+  const original = cells.get(key(c.x, c.z));
+  if (original) {
+    if (original.type === selectedType && (selectedType !== 'customBlock' || original.color === styleCfg.customColor)) return;
+    const q = [c], seen = new Set();
+    while (q.length) {
+      const n = q.pop(), k = key(n.x, n.z);
+      if (seen.has(k) || cells.get(k)?.type !== original.type) continue;
+      seen.add(k); setCell(n.x, n.z, selectedType);
+      q.push({ x: n.x + 1, z: n.z }, { x: n.x - 1, z: n.z }, { x: n.x, z: n.z + 1 }, { x: n.x, z: n.z - 1 });
+    }
+    return;
+  }
+  if (!cells.size) { setCell(c.x, c.z, selectedType); return; }
+  const all = [...cells.values()];
+  const minX = Math.min(...all.map(v => v.x)), maxX = Math.max(...all.map(v => v.x));
+  const minZ = Math.min(...all.map(v => v.z)), maxZ = Math.max(...all.map(v => v.z));
+  if (c.x <= minX || c.x >= maxX || c.z <= minZ || c.z >= maxZ) { showToast('Riempi: tocca dentro un’area chiusa.'); return; }
+  const q = [c], seen = new Set(), area = [];
+  let escapes = false;
+  while (q.length) {
+    const n = q.pop(), k = key(n.x, n.z);
+    if (seen.has(k) || cells.has(k)) continue;
+    seen.add(k);
+    if (n.x <= minX || n.x >= maxX || n.z <= minZ || n.z >= maxZ) { escapes = true; break; }
+    area.push(n);
+    q.push({ x: n.x + 1, z: n.z }, { x: n.x - 1, z: n.z }, { x: n.x, z: n.z + 1 }, { x: n.x, z: n.z - 1 });
+  }
+  if (escapes) { showToast('Riempi: area non chiusa.'); return; }
+  for (const n of area) setCell(n.x, n.z, selectedType);
+}
+
+function clearSessions() {
+  smoothState = null;
+  borderState = null;
+  dragStartCell = null;
+  dragEndCell = null;
+  activeHandle = null;
+  updateActionPill();
+}
+
+function updateActionPill() {
+  if (tool === 'smooth' && smoothState && smoothState.b) {
+    actionPill.classList.add('visible');
+    actionFlip.hidden = true;
+    actionApply.textContent = '✓ Applica curva';
+  } else if (tool === 'border' && borderState && borderState.end) {
+    actionPill.classList.add('visible');
+    actionFlip.hidden = false;
+    actionApply.textContent = '✓ Applica bordo';
+  } else if ((tool === 'smooth' && smoothState) || (tool === 'border' && borderState)) {
+    actionPill.classList.add('visible');
+    actionFlip.hidden = true;
+    actionApply.textContent = '✓ OK';
+    actionApply.disabled = true;
+    return;
+  } else {
+    actionPill.classList.remove('visible');
+  }
+  actionApply.disabled = false;
+}
+
+// Coordinate conversions
+function screenToCell(clientX, clientY) {
+  const r = canvas.getBoundingClientRect(), s = 24 * zoom;
+  return {
+    x: Math.floor((clientX - r.left - offset.x) / s),
+    z: Math.floor((clientY - r.top - offset.y) / s)
+  };
+}
+function cellToScreen(pt) {
+  const s = 24 * zoom;
+  return { x: offset.x + (pt.x + 0.5) * s, y: offset.y + (pt.z + 0.5) * s };
+}
+
+function hitHandle(clientX, clientY) {
+  const r = canvas.getBoundingClientRect();
+  const px = clientX - r.left, py = clientY - r.top;
+  const hitR = 30;
+  const check = (name, pt) => {
+    if (!pt) return null;
+    const sp = cellToScreen(pt);
+    return Math.hypot(px - sp.x, py - sp.y) <= hitR ? name : null;
+  };
+  if (tool === 'smooth' && smoothState) {
+    return check('ctrl', smoothState.ctrl) || check('b', smoothState.b) || check('a', smoothState.a);
+  }
+  if (tool === 'border' && borderState) {
+    return check('end', borderState.end) || check('start', borderState.start);
+  }
+  return null;
+}
+
+// Rendering
+function resize() {
+  const r = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(r.width * dpr);
+  canvas.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!viewInit) {
+    offset = { x: r.width / 2, y: r.height / 2 };
+    viewInit = true;
+  }
+  render();
+}
+
+function drawScaleBar(r, s) {
+  if (!r || r.width < 200 || r.height < 160 || !Number.isFinite(s) || s <= 0) return;
+  const targetPx = Math.max(96, Math.min(360, r.width * 0.25));
+  const steps = [2,4,6,8,10,12,16,20,30,40,50,60,80,100,120,160,200,250,300,400,500,600,800,1000,2000];
+  let best = null, bestErr = Infinity;
+  for (const blocks of steps) {
+    const px = blocks * s;
+    if (px < 64 || px > r.width * 0.44) continue;
+    const err = Math.abs(Math.log(px / targetPx));
+    if (err < bestErr) { bestErr = err; best = blocks; }
+  }
+  if (!best) {
+    for (const blocks of steps) {
+      const px = blocks * s;
+      if (px > r.width - 40) continue;
+      const err = Math.abs(Math.log(Math.max(1, px) / targetPx));
+      if (err < bestErr) { bestErr = err; best = blocks; }
+    }
+  }
+  if (!best) return;
+  const barW = best * s, barH = 9;
+  if (barW < 36 || barW > r.width - 36) return;
+  const dockEl = document.getElementById('dock');
+  const dockCollapsed = document.body.classList.contains('dock-collapsed');
+  const dockH = dockCollapsed ? 44 : (dockEl.getBoundingClientRect().height + 44);
+  const barX = Math.round(r.width - barW - 16);
+  const barY = Math.round(r.height - dockH - barH - 12);
+  const halfW = barW / 2;
+
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(barX, barY, halfW, barH);
+  ctx.fillStyle = '#111111';
+  ctx.fillRect(barX + halfW, barY, halfW, barH);
+  ctx.strokeStyle = '#111111'; ctx.lineWidth = 3;
+  ctx.strokeRect(barX, barY, barW, barH);
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.4;
+  ctx.strokeRect(barX, barY, barW, barH);
+
+  ctx.font = '600 11px -apple-system,system-ui,sans-serif';
+  ctx.textBaseline = 'alphabetic';
+  const ticks = [[0, '0', 'left'], [halfW, String(best / 2), 'center'], [barW, `${best} bl`, 'right']];
+  for (const [dx, label, align] of ticks) {
+    const tx = barX + dx;
+    ctx.beginPath(); ctx.moveTo(tx, barY - 4); ctx.lineTo(tx, barY);
+    ctx.strokeStyle = '#111111'; ctx.lineWidth = 3.2; ctx.stroke();
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.textAlign = align;
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(11,17,26,0.92)'; ctx.lineJoin = 'round';
+    ctx.strokeText(label, tx, barY - 7);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(label, tx, barY - 7);
+  }
+  ctx.restore();
+}
+
+function drawHandle(pt, fill, label) {
+  const sp = cellToScreen(pt);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(sp.x, sp.y, 14, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(11,17,26,0.65)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(sp.x, sp.y, 10, 0, Math.PI * 2);
+  ctx.fillStyle = fill; ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+  if (label) {
+    ctx.font = '700 10px -apple-system,system-ui,sans-serif';
+    ctx.fillStyle = '#09111d'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, sp.x, sp.y + 0.5);
+  }
+  ctx.restore();
+}
+
+function render() {
+  const r = canvas.getBoundingClientRect();
+  const s = 24 * zoom;
+  ctx.fillStyle = '#111925';
+  ctx.fillRect(0, 0, r.width, r.height);
+
+  // Subtle background grid on empty space
+  if (zoom >= 0.14) {
+    const gridAlpha = Math.min(0.32, 0.34 * Math.pow(zoom, 1.35));
+    ctx.strokeStyle = '#283449';
+    ctx.globalAlpha = gridAlpha;
+    ctx.lineWidth = 1;
+    const xStart = Math.floor(-offset.x / s) - 1, xEnd = Math.ceil((r.width - offset.x) / s) + 1;
+    const zStart = Math.floor(-offset.y / s) - 1, zEnd = Math.ceil((r.height - offset.y) / s) + 1;
+    ctx.beginPath();
+    for (let x = xStart; x <= xEnd; x++) {
+      const px = Math.floor(offset.x + x * s) + 0.5;
+      ctx.moveTo(px, 0); ctx.lineTo(px, r.height);
+    }
+    for (let z = zStart; z <= zEnd; z++) {
+      const py = Math.floor(offset.y + z * s) + 0.5;
+      ctx.moveTo(0, py); ctx.lineTo(r.width, py);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // Seamless flush blocks (no dark borders when zoomed in!)
+  for (const c of cells.values()) {
+    const x0 = Math.floor(offset.x + c.x * s);
+    const y0 = Math.floor(offset.y + c.z * s);
+    const x1 = Math.ceil(offset.x + (c.x + 1) * s);
+    const y1 = Math.ceil(offset.y + (c.z + 1) * s);
+    if (x1 < 0 || y1 < 0 || x0 > r.width || y0 > r.height) continue;
+    ctx.fillStyle = c.color || colors[c.type] || '#409dec';
+    ctx.fillRect(x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0));
+  }
+
+  // Previews for Line / Rect / Smooth / Contorno
+  const previewCol = selectedType === 'wall' ? '#62b6ff' : (selectedType === 'customBlock' ? styleCfg.customColor : colors[selectedType]);
+  const previewAlpha = selectedType === 'wall' ? 0.45 : 0.56;
+
+  if ((tool === 'line' || tool === 'rect') && dragStartCell && dragEndCell) {
+    let spans = [];
+    if (tool === 'line') {
+      spans = brushSpans(bresenham(dragStartCell, dragEndCell));
+    } else {
+      const before = Math.floor((brushSize - 1) / 2), after = brushSize - 1 - before;
+      const minX = Math.min(dragStartCell.x, dragEndCell.x) - before;
+      const maxX = Math.max(dragStartCell.x, dragEndCell.x) + after;
+      const minZ = Math.min(dragStartCell.z, dragEndCell.z) - before;
+      const maxZ = Math.max(dragStartCell.z, dragEndCell.z) + after;
+      for (let z = minZ; z <= maxZ; z++) spans.push([z, minX, maxX]);
+    }
+    ctx.fillStyle = previewCol; ctx.globalAlpha = previewAlpha;
+    for (const [z, min, max] of spans) {
+      const x0 = Math.floor(offset.x + min * s), y0 = Math.floor(offset.y + z * s);
+      const x1 = Math.ceil(offset.x + (max + 1) * s), y1 = Math.ceil(offset.y + (z + 1) * s);
+      ctx.fillRect(x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0));
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  if (tool === 'smooth' && smoothState) {
+    if (smoothState.a && smoothState.b && smoothState.ctrl) {
+      const spans = smoothCurveSpans(smoothState.a, smoothState.b, smoothState.ctrl, brushSize);
+      ctx.fillStyle = previewCol; ctx.globalAlpha = previewAlpha;
+      for (const [z, min, max] of spans) {
+        const x0 = Math.floor(offset.x + min * s), y0 = Math.floor(offset.y + z * s);
+        const x1 = Math.ceil(offset.x + (max + 1) * s), y1 = Math.ceil(offset.y + (z + 1) * s);
+        if (y1 >= 0 && y0 <= r.height && x1 >= 0 && x0 <= r.width) {
+          ctx.fillRect(x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0));
+        }
+      }
+      ctx.globalAlpha = 1;
+      // Guide curve
+      const sa = cellToScreen(smoothState.a), sb = cellToScreen(smoothState.b), sm = cellToScreen(smoothState.ctrl);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.72)'; ctx.lineWidth = 1.8; ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(sa.x, sa.y);
+      ctx.quadraticCurveTo(2 * sm.x - (sa.x + sb.x) / 2, 2 * sm.y - (sa.y + sb.y) / 2, sb.x, sb.y);
+      ctx.stroke(); ctx.restore();
+    }
+    if (smoothState.a) drawHandle(smoothState.a, '#4ade80', 'A');
+    if (smoothState.b) drawHandle(smoothState.b, '#38bdf8', 'B');
+    if (smoothState.ctrl) drawHandle(smoothState.ctrl, '#facc15', 'M');
+  }
+
+  if (tool === 'border' && borderState) {
+    const path = traceBorderPath(borderState);
+    const pts = borderState.end ? expandBorderCells(path, borderState.ring, brushSize) : [borderState.start];
+    ctx.fillStyle = previewCol; ctx.globalAlpha = previewAlpha;
+    for (const p of pts) {
+      const x0 = Math.floor(offset.x + p.x * s), y0 = Math.floor(offset.y + p.z * s);
+      const x1 = Math.ceil(offset.x + (p.x + 1) * s), y1 = Math.ceil(offset.y + (p.z + 1) * s);
+      if (y1 >= 0 && y0 <= r.height && x1 >= 0 && x0 <= r.width) {
+        ctx.fillRect(x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0));
+      }
+    }
+    ctx.globalAlpha = 1;
+    drawHandle(borderState.start, '#4ade80', '1');
+    if (borderState.end) drawHandle(borderState.end, '#facc15', '2');
+  }
+
+  drawScaleBar(r, s);
+}
+
+// Multi-touch + Single-finger Pointer Events
+canvas.addEventListener('pointerdown', e => {
+  sizePop.classList.remove('open');
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  // 2-finger pinch + pan ALWAYS active in every tool!
+  if (pointers.size === 2) {
+    if (strokePointerId !== null && (tool === 'paint' || tool === 'erase')) {
+      if (Date.now() - strokeStartedAt < 180 && strokeTouched <= brushSize * brushSize * 2) {
+        abortCurrentUndo();
+      } else {
+        end();
+      }
+      strokePointerId = null;
+      lastPaintCell = null;
+    }
+    dragStartCell = null; dragEndCell = null; activeHandle = null; panStartPt = null;
+    pinching = true;
+    multiTouchLock = true;
+    const [p1, p2] = [...pointers.values()];
+    pinchStartDist = Math.hypot(p2.x - p1.x, p2.y - p1.y) || 1;
+    pinchStartZoom = zoom;
+    const r = canvas.getBoundingClientRect();
+    pinchStartMid = { x: (p1.x + p2.x) / 2 - r.left, y: (p1.y + p2.y) / 2 - r.top };
+    pinchStartOffset = { ...offset };
+    render();
+    return;
+  }
+
+  if (pointers.size > 2 || multiTouchLock) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) {
+    panStartPt = { x: e.clientX, y: e.clientY };
+    panStartOffset = { ...offset };
+    strokePointerId = e.pointerId;
+    return;
+  }
+
+  const c = screenToCell(e.clientX, e.clientY);
+  strokePointerId = e.pointerId;
+
+  if (tool === 'pan') {
+    panStartPt = { x: e.clientX, y: e.clientY };
+    panStartOffset = { ...offset };
+    return;
+  }
+
+  if (tool === 'smooth') {
+    const h = hitHandle(e.clientX, e.clientY);
+    if (h) { activeHandle = h; return; }
+    if (!smoothState) {
+      smoothState = { a: c, b: null, ctrl: null };
+      updateActionPill();
+      render();
+      showToast('Tocca il punto finale B', true);
+      return;
+    }
+    if (!smoothState.b) {
+      smoothState.b = c;
+      smoothState.ctrl = { x: Math.round((smoothState.a.x + c.x) / 2), z: Math.round((smoothState.a.z + c.z) / 2) };
+      updateActionPill();
+      render();
+      showToast('Trascina il pallino giallo M per piegare la curva, poi ✓', true);
+      return;
+    }
+    // Tap anywhere when A & B exist moves midpoint M right there & lets you drag immediately!
+    smoothState.ctrl = c;
+    activeHandle = 'ctrl';
+    render();
+    return;
+  }
+
+  if (tool === 'border') {
+    const h = hitHandle(e.clientX, e.clientY);
+    if (h) { activeHandle = h; return; }
+    if (!borderState) {
+      const snap = snapToLocalRing(c, 5);
+      if (!snap) { showToast('Tocca vicino al bordo di un blocco esistente'); return; }
+      borderState = buildRingSession(snap);
+      updateActionPill();
+      render();
+      showToast('Tocca il 2° punto lungo il bordo', true);
+      return;
+    }
+    const snapEnd = snapToSessionRing(c, borderState.ring, 7);
+    if (!snapEnd) { showToast('Tocca sullo stesso bordo (o ✕ per annullare)'); return; }
+    borderState.end = snapEnd;
+    activeHandle = 'end';
+    updateActionPill();
+    render();
+    showToast('Trascina 1/2 per rifinire, ⇄ per altro lato, ✓ per applicare', true);
+    return;
+  }
+
+  if (tool === 'fill') {
+    begin();
+    floodFill(c);
+    end();
+    render();
+    return;
+  }
+
+  if (tool === 'line' || tool === 'rect') {
+    dragStartCell = c;
+    dragEndCell = c;
+    render();
+    return;
+  }
+
+  if (tool === 'paint' || tool === 'erase') {
+    begin();
+    strokeStartedAt = Date.now();
+    strokeTouched = paintSpans(brushSpans([c]), tool === 'erase' ? null : selectedType);
+    lastPaintCell = c;
+    render();
+  }
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (pinching && pointers.size >= 2) {
+    const [p1, p2] = [...pointers.values()];
+    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y) || 1;
+    const r = canvas.getBoundingClientRect();
+    const mid = { x: (p1.x + p2.x) / 2 - r.left, y: (p1.y + p2.y) / 2 - r.top };
+    const nextZoom = Math.min(3.5, Math.max(0.03, pinchStartZoom * (dist / pinchStartDist)));
+    const ratio = nextZoom / pinchStartZoom;
+    offset.x = mid.x + (pinchStartOffset.x - pinchStartMid.x) * ratio;
+    offset.y = mid.y + (pinchStartOffset.y - pinchStartMid.y) * ratio;
+    zoom = nextZoom;
+    render();
+    return;
+  }
+
+  if (multiTouchLock || e.pointerId !== strokePointerId) return;
+
+  if (panStartPt) {
+    offset.x = panStartOffset.x + (e.clientX - panStartPt.x);
+    offset.y = panStartOffset.y + (e.clientY - panStartPt.y);
+    render();
+    return;
+  }
+
+  const c = screenToCell(e.clientX, e.clientY);
+
+  if (activeHandle && tool === 'smooth' && smoothState) {
+    smoothState[activeHandle] = c;
+    render();
+    return;
+  }
+
+  if (activeHandle && tool === 'border' && borderState) {
+    const snapped = snapToSessionRing(c, borderState.ring, 8);
+    if (snapped) {
+      if (activeHandle === 'start') {
+        borderState.start = snapped;
+        rebuildBorderParent(borderState);
+      } else {
+        borderState.end = snapped;
+      }
+      render();
+    }
+    return;
+  }
+
+  if ((tool === 'line' || tool === 'rect') && dragStartCell) {
+    if (c.x !== dragEndCell.x || c.z !== dragEndCell.z) {
+      dragEndCell = c;
+      render();
+    }
+    return;
+  }
+
+  if ((tool === 'paint' || tool === 'erase') && lastPaintCell) {
+    if (c.x !== lastPaintCell.x || c.z !== lastPaintCell.z) {
+      strokeTouched += paintSpans(brushSpans(bresenham(lastPaintCell, c)), tool === 'erase' ? null : selectedType);
+      lastPaintCell = c;
+      render();
+    }
+  }
+});
+
+function handlePointerUp(e) {
+  pointers.delete(e.pointerId);
+  if (pinching && pointers.size < 2) pinching = false;
+  if (pointers.size === 0) multiTouchLock = false;
+
+  if (e.pointerId !== strokePointerId) return;
+  strokePointerId = null;
+
+  if (panStartPt) { panStartPt = null; return; }
+  if (activeHandle) { activeHandle = null; return; }
+
+  if ((tool === 'line' || tool === 'rect') && dragStartCell && dragEndCell) {
+    let spans = [];
+    if (tool === 'line') spans = brushSpans(bresenham(dragStartCell, dragEndCell));
+    else {
+      const before = Math.floor((brushSize - 1) / 2), after = brushSize - 1 - before;
+      const minX = Math.min(dragStartCell.x, dragEndCell.x) - before, maxX = Math.max(dragStartCell.x, dragEndCell.x) + after;
+      const minZ = Math.min(dragStartCell.z, dragEndCell.z) - before, maxZ = Math.max(dragStartCell.z, dragEndCell.z) + after;
+      for (let z = minZ; z <= maxZ; z++) spans.push([z, minX, maxX]);
+    }
+    begin(); paintSpans(spans, selectedType); end();
+    dragStartCell = null; dragEndCell = null;
+    render();
+    return;
+  }
+
+  if ((tool === 'paint' || tool === 'erase') && lastPaintCell) {
+    end();
+    lastPaintCell = null;
+    render();
+  }
+}
+canvas.addEventListener('pointerup', handlePointerUp);
+canvas.addEventListener('pointercancel', handlePointerUp);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// Mouse wheel zoom (for desktop / iPad trackpad preview)
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  const next = Math.min(3.5, Math.max(0.03, zoom * Math.exp(-Math.max(-120, Math.min(120, e.deltaY)) * 0.0012)));
+  const ratio = next / zoom;
+  offset.x = x + (offset.x - x) * ratio;
+  offset.y = y + (offset.y - y) * ratio;
+  zoom = next;
+  render();
+}, { passive: false });
+
+// Action Pill Buttons (Confirm / Cancel / Flip)
+actionApply.onclick = () => {
+  if (tool === 'smooth' && smoothState?.a && smoothState?.b && smoothState?.ctrl) {
+    const spans = smoothCurveSpans(smoothState.a, smoothState.b, smoothState.ctrl, brushSize);
+    begin(); const n = paintSpans(spans, selectedType); end();
+    clearSessions(); render();
+    showToast(`Curva applicata (${n} blocchi)`);
+  } else if (tool === 'border' && borderState?.start && borderState?.end) {
+    const path = traceBorderPath(borderState);
+    const pts = expandBorderCells(path, borderState.ring, brushSize);
+    begin();
+    for (const p of pts) setCell(p.x, p.z, selectedType);
+    end();
+    clearSessions(); render();
+    showToast(`Contorno applicato (${pts.length} blocchi)`);
+  }
+};
+document.getElementById('actionCancel').onclick = () => {
+  clearSessions(); render(); showToast('Annullato');
+};
+actionFlip.onclick = () => {
+  if (borderState) {
+    borderState.flip = !borderState.flip;
+    render();
+    showToast(borderState.flip ? 'Lato alternativo' : 'Lato più corto');
+  }
+};
+
+// Fit View
+function fitView() {
+  const all = [...cells.values()];
+  if (!all.length) {
+    const r = canvas.getBoundingClientRect();
+    zoom = 0.85; offset = { x: r.width / 2, y: r.height / 2 };
+    render(); showToast('Vista centrata'); return;
+  }
+  const minX = Math.min(...all.map(c => c.x)), maxX = Math.max(...all.map(c => c.x));
+  const minZ = Math.min(...all.map(c => c.z)), maxZ = Math.max(...all.map(c => c.z));
+  const r = canvas.getBoundingClientRect();
+  const w = maxX - minX + 1, h = maxZ - minZ + 1;
+  const topPad = 70, botPad = 140;
+  const availW = Math.max(120, r.width - 36), availH = Math.max(120, r.height - topPad - botPad);
+  zoom = Math.min(3, Math.max(0.03, Math.min(availW / (w * 24), availH / (h * 24)) * 0.88));
+  const s = 24 * zoom;
+  offset.x = r.width / 2 - (minX + maxX + 1) * s / 2;
+  offset.y = topPad + availH / 2 - (minZ + maxZ + 1) * s / 2;
+  render();
+  showToast('Pista inquadrata');
+}
+
+// Dock & UI Controls
+function setBrushSize(sz) {
+  brushSize = Math.max(1, Math.min(40, Math.round(sz)));
+  document.getElementById('sizeBtn').textContent = String(brushSize);
+  document.getElementById('sizeSlider').value = String(brushSize);
+  document.getElementById('sizePopLabel').textContent = `${brushSize} ${brushSize === 1 ? 'blocco' : 'blocchi'}`;
+  document.querySelectorAll('#sizePresets button').forEach(b => b.classList.toggle('active', Number(b.dataset.sz) === brushSize));
+  render();
+}
+document.getElementById('sizeMinus').onclick = () => setBrushSize(brushSize - 1);
+document.getElementById('sizePlus').onclick = () => setBrushSize(brushSize + 1);
+document.getElementById('sizeBtn').onclick = () => sizePop.classList.toggle('open');
+document.getElementById('sizePresets').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  setBrushSize(Number(b.dataset.sz)); sizePop.classList.remove('open');
+};
+document.getElementById('sizeSlider').oninput = e => setBrushSize(Number(e.target.value));
+
+function selectTool(t) {
+  if (t !== tool) clearSessions();
+  tool = t;
+  document.querySelectorAll('#tools button').forEach(b => b.classList.toggle('selected', b.dataset.tool === t));
+  const tips = {
+    paint: 'Disegna: trascina · 2 dita = zoom/sposta',
+    line: 'Linea: trascina da inizio a fine',
+    smooth: 'Smooth: tocca punto A, poi punto B, poi curva M',
+    border: 'Contorno: tocca 2 punti sul bordo di un’area',
+    rect: 'Rettangolo: trascina tra due angoli',
+    fill: 'Riempi: tocca dentro un’area chiusa',
+    erase: 'Gomma: trascina per cancellare',
+    pan: 'Sposta: trascina con 1 dito'
+  };
+  showToast(tips[t] || '');
+  render();
+}
+document.getElementById('tools').onclick = e => {
+  const b = e.target.closest('button'); if (b) selectTool(b.dataset.tool);
+};
+document.getElementById('palette').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  selectedType = b.dataset.type;
+  document.querySelectorAll('#palette button').forEach(x => x.classList.toggle('selected', x === b));
+  if (tool === 'erase' || tool === 'pan') selectTool('paint');
+  else render();
+};
+document.getElementById('customColor').oninput = e => {
+  styleCfg.customColor = e.target.value;
+  colors.customBlock = e.target.value;
+  const sw = document.querySelector('[data-swatch="customBlock"]');
+  if (sw) sw.style.background = e.target.value;
+  selectedType = 'customBlock';
+  document.querySelectorAll('#palette button').forEach(x => x.classList.toggle('selected', x.dataset.type === 'customBlock'));
+  render();
+};
+
+document.getElementById('dockToggle').onclick = () => {
+  const collapsed = document.body.classList.toggle('dock-collapsed');
+  document.getElementById('dockToggle').textContent = collapsed ? '▴ Mostra barra' : '▾ Nascondi barra';
+  sizePop.classList.remove('open');
+  render();
+};
+
+document.getElementById('undoBtn').onclick = undo;
+document.getElementById('redoBtn').onclick = redo;
+document.getElementById('fitBtn').onclick = fitView;
+
+// Sheet Menu
+const sheetBackdrop = document.getElementById('sheetBackdrop');
+function updateStats() {
+  const c = { ice: 0, blueIce: 0, whiteGround: 0, ground: 0, wall: 0, other: 0 };
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (const cell of cells.values()) {
+    if (c[cell.type] !== undefined) c[cell.type]++; else c.other++;
+    if (cell.x < minX) minX = cell.x; if (cell.x > maxX) maxX = cell.x;
+    if (cell.z < minZ) minZ = cell.z; if (cell.z > maxZ) maxZ = cell.z;
+  }
+  const dims = cells.size ? `${maxX - minX + 1}×${maxZ - minZ + 1} bl (${(maxX - minX + 1) * 3}×${(maxZ - minZ + 1) * 3} studs)` : 'vuota';
+  document.getElementById('statsBox').innerHTML =
+    `<b>${cells.size}</b> blocchi · Dimensioni: <b>${dims}</b><br>` +
+    `Ice: ${c.ice} · Blue: ${c.blueIce} · Bianco: ${c.whiteGround} · Terra: ${c.ground} · Muri: ${c.wall}`;
+}
+document.getElementById('menuBtn').onclick = () => {
+  sizePop.classList.remove('open');
+  updateStats();
+  sheetBackdrop.classList.add('open');
+};
+document.getElementById('sheetClose').onclick = () => sheetBackdrop.classList.remove('open');
+sheetBackdrop.onclick = e => { if (e.target === sheetBackdrop) sheetBackdrop.classList.remove('open'); };
+
+// Style inputs sync
+function syncStyleInputs() {
+  document.getElementById('trackName').value = styleCfg.trackName;
+  document.getElementById('gColor').value = styleCfg.ground.color;
+  document.getElementById('gSlip').value = String(styleCfg.ground.slipperiness);
+  document.getElementById('wgColor').value = styleCfg.whiteGround.color;
+  document.getElementById('wgSlip').value = String(styleCfg.whiteGround.slipperiness);
+  document.getElementById('wColor').value = styleCfg.wall.color;
+  document.getElementById('wHeight').value = String(styleCfg.wall.height);
+  colors.ground = styleCfg.ground.color;
+  colors.whiteGround = styleCfg.whiteGround.color;
+  colors.wall = styleCfg.wall.color;
+  document.querySelector('[data-swatch="ground"]').style.background = colors.ground;
+  document.querySelector('[data-swatch="whiteGround"]').style.background = colors.whiteGround;
+  document.querySelector('[data-swatch="wall"]').style.background = colors.wall;
+}
+document.getElementById('trackName').oninput = e => { styleCfg.trackName = e.target.value.trim() || 'mio-track'; scheduleSave(); };
+document.getElementById('gColor').oninput = e => { styleCfg.ground.color = e.target.value; syncStyleInputs(); render(); scheduleSave(); };
+document.getElementById('gSlip').onchange = e => { styleCfg.ground.slipperiness = Math.max(0.1, Math.min(0.97, Number(e.target.value) || 0.7)); scheduleSave(); };
+document.getElementById('wgColor').oninput = e => { styleCfg.whiteGround.color = e.target.value; syncStyleInputs(); render(); scheduleSave(); };
+document.getElementById('wgSlip').onchange = e => { styleCfg.whiteGround.slipperiness = Math.max(0.1, Math.min(0.97, Number(e.target.value) || 0.8)); scheduleSave(); };
+document.getElementById('wColor').oninput = e => { styleCfg.wall.color = e.target.value; syncStyleInputs(); render(); scheduleSave(); };
+document.getElementById('wHeight').onchange = e => { styleCfg.wall.height = Number(e.target.value) || 3; scheduleSave(); };
+
+// Quick track actions
+document.getElementById('outlineWallsBtn').onclick = () => {
+  const ice = [...cells.values()].filter(c => c.type === 'ice' || c.type === 'blueIce');
+  if (!ice.length) { showToast('Disegna prima del ghiaccio'); return; }
+  begin();
+  let added = 0;
+  for (const c of ice) {
+    for (const [dx, dz] of DIRS8) {
+      const nk = key(c.x + dx, c.z + dz);
+      if (!cells.has(nk)) { setCell(c.x + dx, c.z + dz, 'wall'); added++; }
+    }
+  }
+  end(); render(); updateStats();
+  sheetBackdrop.classList.remove('open');
+  showToast(added ? `Aggiunti ${added} muri attorno a Ice` : 'Ice già circondato');
+};
+
+document.getElementById('swapGroundBtn').onclick = () => {
+  begin();
+  let n = 0;
+  for (const c of [...cells.values()]) {
+    if (c.type === 'ground') { setCell(c.x, c.z, 'whiteGround'); n++; }
+    else if (c.type === 'whiteGround') { setCell(c.x, c.z, 'ground'); n++; }
+  }
+  end(); render(); updateStats();
+  sheetBackdrop.classList.remove('open');
+  showToast(`Scambiati ${n} blocchi Terra ↔ Bianco`);
+};
+
+document.getElementById('fullscreenBtn').onclick = async () => {
+  sheetBackdrop.classList.remove('open');
+  try {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    } else if (document.fullscreenElement && document.exitFullscreen) {
+      await document.exitFullscreen();
+    } else {
+      showToast('Su iPhone usa Condividi → Aggiungi a Home per fullscreen');
+    }
+  } catch {
+    showToast('Su iPhone usa Condividi → Aggiungi a Home per fullscreen');
+  }
+};
+
+document.getElementById('clearBtn').onclick = () => {
+  if (cells.size && !confirm('Cancellare tutta la pista corrente?')) return;
+  clearSessions();
+  begin(); cells.clear(); changed = true; end();
+  render(); updateStats();
+  sheetBackdrop.classList.remove('open');
+  showToast('Nuova pista vuota');
+};
+
+// Export / Import (100% compatible with Desktop Ice Track Builder: ice-track-layout-v1)
+function buildExportLayout() {
+  const sorted = cloneCells().sort((a, b) => a.type.localeCompare(b.type) || a.z - b.z || a.x - b.x);
+  return {
+    format: 'ice-track-layout-v1',
+    cellSize: CELL,
+    exportMode: 'parts',
+    visualStorage: 'place-static',
+    ground: { ...styleCfg.ground },
+    groundSlipperiness: styleCfg.ground.slipperiness,
+    whiteGround: { ...styleCfg.whiteGround },
+    whiteGroundSlipperiness: styleCfg.whiteGround.slipperiness,
+    wall: { ...styleCfg.wall },
+    cells: sorted
+  };
+}
+
+async function exportJSON() {
+  const data = buildExportLayout();
+  const safeName = (styleCfg.trackName || 'mio-track').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-|-$/g, '') || 'mio-track';
+  const fileName = `${safeName}.json`;
+  const jsonText = JSON.stringify(data);
+  const blob = new Blob([jsonText], { type: 'application/json' });
+
+  // Prefer native mobile share sheet (AirDrop / Save to Files / iCloud) when available
+  if (navigator.canShare && typeof File !== 'undefined') {
+    try {
+      const file = new File([blob], fileName, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: fileName });
+        showToast(`Esportato ${fileName} (${cells.size} blocchi)`);
+        return;
+      }
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  showToast(`Salvato ${fileName} (${cells.size} blocchi)`);
+}
+document.getElementById('exportBtn').onclick = () => { sheetBackdrop.classList.remove('open'); exportJSON(); };
+document.getElementById('exportQuickBtn').onclick = exportJSON;
+
+document.getElementById('importBtn').onclick = () => document.getElementById('importInput').click();
+document.getElementById('importInput').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const d = JSON.parse(await file.text());
+    if (d.format !== 'ice-track-layout-v1' || d.cellSize !== 3) throw Error('Formato JSON non valido.');
+    const loaded = [];
+    if (Array.isArray(d.cells)) {
+      for (const c of d.cells) loaded.push({ x: c.x, z: c.z, type: c.type, ...(c.color ? { color: c.color } : {}) });
+    } else if (Array.isArray(d.runs)) {
+      for (const r of d.runs) {
+        for (let i = 0; i < r[3]; i++) loaded.push({ type: r[0], x: r[1] + i, z: r[2], ...(r[6] ? { color: r[6] } : {}) });
+      }
+    } else throw Error('Nessuna cella nel file.');
+
+    clearSessions();
+    begin();
+    cells = new Map(loaded.map(c => [key(c.x, c.z), c]));
+    changed = true;
+    end();
+    if (d.ground) Object.assign(styleCfg.ground, d.ground);
+    if (d.whiteGround) Object.assign(styleCfg.whiteGround, d.whiteGround);
+    if (d.wall) Object.assign(styleCfg.wall, d.wall);
+    styleCfg.trackName = file.name.replace(/\.json$/i, '') || styleCfg.trackName;
+    syncStyleInputs();
+    scheduleSave();
+    fitView();
+    updateStats();
+    sheetBackdrop.classList.remove('open');
+    showToast(`Aperto ${file.name} (${cells.size} blocchi)`);
+  } catch (err) {
+    showToast(`Errore: ${err.message}`);
+  }
+  e.target.value = '';
+};
+
+// Auto-save compressed RLE draft in localStorage
+function encodeRuns() {
+  const sorted = cloneCells().sort((a, b) => a.type.localeCompare(b.type) || a.z - b.z || a.x - b.x);
+  const runs = [];
+  let cur = null;
+  for (const c of sorted) {
+    if (cur && cur[0] === c.type && cur[2] === c.z && cur[1] + cur[3] === c.x && cur[4] === c.color) cur[3]++;
+    else { cur = c.color ? [c.type, c.x, c.z, 1, c.color] : [c.type, c.x, c.z, 1]; runs.push(cur); }
+  }
+  return runs;
+}
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        v: 1, styleCfg, brushSize, zoom, offset, runs: encodeRuns()
+      }));
+    } catch {}
+  }, 350);
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d?.v !== 1 || !Array.isArray(d.runs)) return;
+    const restored = new Map();
+    for (const r of d.runs) {
+      for (let i = 0; i < r[3]; i++) {
+        const x = r[1] + i, z = r[2];
+        restored.set(key(x, z), { type: r[0], x, z, ...(r[4] ? { color: r[4] } : {}) });
+      }
+    }
+    cells = restored;
+    if (d.styleCfg) {
+      if (d.styleCfg.trackName) styleCfg.trackName = d.styleCfg.trackName;
+      if (d.styleCfg.ground) Object.assign(styleCfg.ground, d.styleCfg.ground);
+      if (d.styleCfg.whiteGround) Object.assign(styleCfg.whiteGround, d.styleCfg.whiteGround);
+      if (d.styleCfg.wall) Object.assign(styleCfg.wall, d.styleCfg.wall);
+      if (d.styleCfg.customColor) styleCfg.customColor = d.styleCfg.customColor;
+    }
+    if (Number.isInteger(d.brushSize)) setBrushSize(d.brushSize);
+    if (Number.isFinite(d.zoom) && d.offset && Number.isFinite(d.offset.x)) {
+      zoom = d.zoom; offset = { ...d.offset }; viewInit = true;
+    }
+    syncStyleInputs();
+    if (cells.size) showToast(`Bozza ripristinata (${cells.size} blocchi)`);
+  } catch {}
+}
+
+window.addEventListener('resize', resize);
+syncStyleInputs();
+setBrushSize(1);
+updateHistoryUI();
+loadDraft();
+resize();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+})();
+</script>
+</body>
+</html>
